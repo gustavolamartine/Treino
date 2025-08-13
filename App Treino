@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário de Treino PRO v12</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .nav-btn { transition: all 0.2s ease-in-out; border-bottom: 3px solid transparent; }
+        .nav-btn.active { border-bottom-color: #14b8a6; color: white; }
+        .page { display: none; animation: fadeIn 0.5s; }
+        .page.active { display: block; }
+        select:disabled { background-color: #374151; cursor: not-allowed; }
+        
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        .collapsible-content.open { max-height: 1500px; }
+
+        .fa-chevron-down { transition: transform 0.3s ease-out; }
+        .open .fa-chevron-down { transform: rotate(180deg); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="container mx-auto p-4 md:p-6 max-w-7xl">
+        
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-white">Diário de Treino PRO</h1>
+            <p class="text-gray-400 mt-2">Organize seus Protocolos, execute os treinos e analise sua evolução.</p>
+        </header>
+
+        <!-- Navegação Principal -->
+        <nav class="flex flex-wrap justify-center border-b border-gray-700 mb-6">
+            <button data-page="protocols" class="nav-btn active flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Protocolos e Fichas</button>
+            <button data-page="daily-workout" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Treino do Dia</button>
+            <button data-page="history" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Histórico - Treino</button>
+            <button data-page="dashboard" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Dashboard - Treino</button>
+            <button data-page="cardio" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Cardio</button>
+            <button data-page="cardio-history" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Histórico - Cardio</button>
+        </nav>
+
+        <!-- Conteúdo das Páginas -->
+        <main>
+            <!-- PÁGINA 1: PROTOCOLOS E FICHAS -->
+            <div id="protocols" class="page active">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Gerenciar Protocolos</h2>
+                        <div class="flex gap-4 mb-4">
+                            <input type="text" id="new-protocol-name" placeholder="Nome do Novo Protocolo" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            <button id="add-protocol-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md">Criar</button>
+                        </div>
+                        <div id="protocol-list-container"></div>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Gerenciar Exercícios</h2>
+                        <div class="flex gap-4 mb-4">
+                            <input type="text" id="new-exercise-name" placeholder="Nome do Novo Exercício" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            <button id="add-exercise-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md">Criar</button>
+                        </div>
+                        <div id="exercise-list-container"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h2 id="routine-form-title" class="text-2xl font-semibold mb-4 text-white">Criar/Editar Ficha</h2>
+                        <div class="space-y-4">
+                             <div>
+                                <label for="protocol-selector-form" class="block text-sm font-medium text-gray-300 mb-1">Selecione o Protocolo</label>
+                                <select id="protocol-selector-form" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                            </div>
+                            <input type="hidden" id="editing-routine-id">
+                            <div>
+                                <label for="routine-name" class="block text-sm font-medium text-gray-300 mb-1">Nome da Ficha</label>
+                                <input type="text" id="routine-name" placeholder="Ex: Treino A - Peito e Tríceps" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            </div>
+                            
+                            <div id="routine-exercises-builder" class="space-y-4 bg-gray-900 p-4 rounded-md"></div>
+
+                            <button id="add-exercise-to-routine-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Adicionar Exercício à Ficha</button>
+                            
+                            <button id="save-routine-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Salvar Ficha</button>
+                            <button id="cancel-edit-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md hidden">Cancelar Edição</button>
+                        </div>
+                    </div>
+                    <div id="protocol-details-container" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Fichas do Protocolo</h2>
+                        <div class="mb-4">
+                            <label for="protocol-filter-selector" class="block text-sm font-medium text-gray-300 mb-1">Filtrar por Protocolo</label>
+                            <select id="protocol-filter-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                        </div>
+                        <div id="saved-routines-container" class="space-y-4">
+                            <p class="text-gray-400">Selecione um protocolo para ver suas fichas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PÁGINA 2: TREINO DO DIA -->
+            <div id="daily-workout" class="page">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Registre o Treino de Hoje</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label for="daily-protocol-selector" class="block text-sm font-medium text-gray-300 mb-1">1. Protocolo</label>
+                            <select id="daily-protocol-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:ring-2 focus:ring-teal-500"></select>
+                        </div>
+                        <div>
+                            <label for="daily-routine-selector" class="block text-sm font-medium text-gray-300 mb-1">2. Ficha</label>
+                            <select id="daily-routine-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:ring-2 focus:ring-teal-500" disabled></select>
+                        </div>
+                         <div>
+                            <label for="workout-date" class="block text-sm font-medium text-gray-300 mb-1">3. Data do Treino</label>
+                            <input type="date" id="workout-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                        </div>
+                    </div>
+                    <div id="daily-exercises-container" class="space-y-6 mt-6">
+                        <p class="text-gray-400 text-center">Selecione um protocolo e uma ficha para começar.</p>
+                    </div>
+                    <button id="save-workout-btn" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow-lg transition-transform transform hover:scale-101 disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
+                        Salvar Treino do Dia
+                    </button>
+                </div>
+            </div>
+            
+            <!-- PÁGINA 3: HISTÓRICO - TREINO -->
+            <div id="history" class="page">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-white">Histórico - Treino</h2>
+                        <button id="export-history-pdf" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Exportar para PDF</button>
+                    </div>
+                    <div id="history-container" class="space-y-6"></div>
+                </div>
+            </div>
+
+            <!-- PÁGINA 4: DASHBOARD - TREINO -->
+            <div id="dashboard" class="page">
+                 <div class="bg-gray-800 p-6 rounded-lg shadow-lg" id="dashboard-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-white">Dashboard - Treino</h2>
+                        <button id="export-dashboard-pdf" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Exportar para PDF</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-gray-900 rounded-lg">
+                        <div>
+                            <label for="dash-protocol-selector" class="block text-sm font-medium text-gray-300 mb-1">Filtrar Protocolo</label>
+                            <select id="dash-protocol-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                        </div>
+                        <div>
+                            <label for="dash-routine-selector" class="block text-sm font-medium text-gray-300 mb-1">Filtrar Ficha</label>
+                            <select id="dash-routine-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" disabled></select>
+                        </div>
+                        <div>
+                            <label for="dash-exercise-selector" class="block text-sm font-medium text-gray-300 mb-1">Exercício</label>
+                            <select id="dash-exercise-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                        </div>
+                        <div>
+                            <label for="dash-set-type-selector" class="block text-sm font-medium text-gray-300 mb-1">Tipo de Set</label>
+                            <select id="dash-set-type-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" disabled></select>
+                        </div>
+                    </div>
+                     <div id="chart-type-container" class="flex justify-center gap-4 mb-6">
+                        <label class="flex items-center"><input type="radio" name="chart-type" value="load" class="mr-2" checked> Carga</label>
+                        <label class="flex items-center"><input type="radio" name="chart-type" value="reps" class="mr-2"> Repetições</label>
+                        <label class="flex items-center"><input type="radio" name="chart-type" value="both" class="mr-2"> Ambos</label>
+                    </div>
+                    <canvas id="dashboard-chart"></canvas>
+                    <p id="dashboard-chart-message" class="text-center text-gray-400 mt-4">Selecione um modo de análise para começar.</p>
+                 </div>
+            </div>
+            
+            <!-- PÁGINA 5: CARDIO -->
+            <div id="cardio" class="page">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg mx-auto">
+                    <h2 class="text-2xl font-semibold mb-4 text-white text-center">Registrar Exercício Cardio</h2>
+                    <p class="text-center text-gray-400 text-sm mb-6">Caso faça mais de um exercício cardiovascular no dia, registrar apenas o tempo total.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="cardio-date" class="block text-sm font-medium text-gray-300 mb-1">Data</label>
+                            <input type="date" id="cardio-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                        </div>
+                        <div>
+                            <label for="cardio-exercise-selector" class="block text-sm font-medium text-gray-300 mb-1">Exercício</label>
+                            <select id="cardio-exercise-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                                <option>Esteira</option>
+                                <option>Elíptico</option>
+                                <option>Bicicleta</option>
+                                <option>Escada</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="cardio-time" class="block text-sm font-medium text-gray-300 mb-1">Tempo (em minutos)</label>
+                            <input type="number" id="cardio-time" placeholder="Ex: 30" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                        </div>
+                        <button id="save-cardio-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md">Salvar Cardio</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PÁGINA 6: HISTÓRICO - CARDIO -->
+            <div id="cardio-history" class="page">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg" id="cardio-history-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-white">Histórico - Cardio</h2>
+                        <button id="export-cardio-history-pdf" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Exportar para PDF</button>
+                    </div>
+                    <div class="mb-4 max-w-sm mx-auto">
+                        <label for="cardio-history-filter" class="block text-sm font-medium text-gray-300 mb-1">Filtrar por Exercício</label>
+                        <select id="cardio-history-filter" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            <option value="Todos">Todos</option>
+                            <option>Esteira</option>
+                            <option>Elíptico</option>
+                            <option>Bicicleta</option>
+                            <option>Escada</option>
+                        </select>
+                    </div>
+                    <div id="cardio-history-container" class="overflow-x-auto"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- CONSTANTES ---
+        const SET_TYPE_OPTIONS = ["WARM-UP SET", "FEEDER SET", "WORK SET", "TOP SET"];
+        const REPS_OPTIONS = ["4-6 reps", "6-8 reps", "8-10 reps", "10-12 reps", "12-15 reps"];
+        const REST_OPTIONS = ["30 seg off", "1 min off", "1:30 min off", "2 min off", "2:30 min off", "3 min off"];
+        const CHART_COLORS = {
+            "WARM-UP SET": '#22c55e', // green
+            "FEEDER SET": '#eab308',  // yellow
+            "WORK SET": '#f97316',    // orange
+            "TOP SET": '#ef4444',     // red
+            DEFAULT: ['#3b82f6', '#14b8a6', '#8b5cf6', '#ec4899', '#64748b', '#78716c']
+        };
+
+        // --- ESTADO DA APLICAÇÃO ---
+        let protocols = JSON.parse(localStorage.getItem('workoutProtocols_v12')) || {};
+        let exerciseDatabase = JSON.parse(localStorage.getItem('workoutExercises_v12')) || [];
+        let workoutHistory = JSON.parse(localStorage.getItem('workoutHistory_v12')) || {};
+        let cardioHistory = JSON.parse(localStorage.getItem('workoutCardioHistory_v12')) || [];
+        let dashboardChartInstance = null;
+
+        // --- ELEMENTOS DA DOM ---
+        const pages = document.querySelectorAll('.page');
+        const navButtons = document.querySelectorAll('.nav-btn');
+        
+        const newProtocolNameInput = document.getElementById('new-protocol-name');
+        const addProtocolBtn = document.getElementById('add-protocol-btn');
+        const protocolListContainer = document.getElementById('protocol-list-container');
+        
+        const newExerciseNameInput = document.getElementById('new-exercise-name');
+        const addExerciseBtn = document.getElementById('add-exercise-btn');
+        const exerciseListContainer = document.getElementById('exercise-list-container');
+
+        const protocolSelectorForm = document.getElementById('protocol-selector-form');
+        const routineFormTitle = document.getElementById('routine-form-title');
+        const routineNameInput = document.getElementById('routine-name');
+        const routineExercisesBuilder = document.getElementById('routine-exercises-builder');
+        const addExerciseToRoutineBtn = document.getElementById('add-exercise-to-routine-btn');
+        const saveRoutineBtn = document.getElementById('save-routine-btn');
+        const protocolFilterSelector = document.getElementById('protocol-filter-selector');
+        const savedRoutinesContainer = document.getElementById('saved-routines-container');
+        const editingRoutineIdInput = document.getElementById('editing-routine-id');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+        const dailyProtocolSelector = document.getElementById('daily-protocol-selector');
+        const dailyRoutineSelector = document.getElementById('daily-routine-selector');
+        const workoutDateInput = document.getElementById('workout-date');
+        const dailyExercisesContainer = document.getElementById('daily-exercises-container');
+        const saveWorkoutBtn = document.getElementById('save-workout-btn');
+
+        const cardioDateInput = document.getElementById('cardio-date');
+        const cardioExerciseSelector = document.getElementById('cardio-exercise-selector');
+        const cardioTimeInput = document.getElementById('cardio-time');
+        const saveCardioBtn = document.getElementById('save-cardio-btn');
+
+        const historyContainer = document.getElementById('history-container');
+        const exportHistoryBtn = document.getElementById('export-history-pdf');
+        
+        const cardioHistoryContent = document.getElementById('cardio-history-content');
+        const cardioHistoryContainer = document.getElementById('cardio-history-container');
+        const cardioHistoryFilter = document.getElementById('cardio-history-filter');
+        const exportCardioHistoryBtn = document.getElementById('export-cardio-history-pdf');
+
+        const dashboardContent = document.getElementById('dashboard-content');
+        const dashProtocolSelector = document.getElementById('dash-protocol-selector');
+        const dashRoutineSelector = document.getElementById('dash-routine-selector');
+        const dashExerciseSelector = document.getElementById('dash-exercise-selector');
+        const dashSetTypeSelector = document.getElementById('dash-set-type-selector');
+        const chartTypeContainer = document.getElementById('chart-type-container');
+        const dashboardChartCanvas = document.getElementById('dashboard-chart');
+        const dashboardChartMessage = document.getElementById('dashboard-chart-message');
+        const chartTypeRadios = document.querySelectorAll('input[name="chart-type"]');
+        const exportDashboardBtn = document.getElementById('export-dashboard-pdf');
+
+        // --- FUNÇÕES DE LÓGICA E RENDERIZAÇÃO ---
+
+        const switchPage = (pageId) => {
+            pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+            navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.page === pageId));
+        };
+
+        const saveState = () => {
+            localStorage.setItem('workoutProtocols_v12', JSON.stringify(protocols));
+            localStorage.setItem('workoutExercises_v12', JSON.stringify(exerciseDatabase));
+            localStorage.setItem('workoutHistory_v12', JSON.stringify(workoutHistory));
+            localStorage.setItem('workoutCardioHistory_v12', JSON.stringify(cardioHistory));
+        };
+
+        const populateProtocolSelectors = () => {
+            const selectors = [protocolSelectorForm, dailyProtocolSelector, dashProtocolSelector, protocolFilterSelector];
+            selectors.forEach(selector => {
+                const currentVal = selector.value;
+                selector.innerHTML = '<option value="">-- Todos --</option>';
+                Object.keys(protocols).sort((a,b) => protocols[b].createdAt - protocols[a].createdAt).forEach(id => {
+                    selector.innerHTML += `<option value="${id}">${protocols[id].name}</option>`;
+                });
+                selector.value = currentVal;
+            });
+        };
+        
+        const populateExerciseSelector = (selector) => {
+            const currentVal = selector.value;
+            selector.innerHTML = '<option value="">-- Selecione --</option>';
+            exerciseDatabase.sort().forEach(exName => {
+                selector.innerHTML += `<option value="${exName}">${exName}</option>`;
+            });
+            selector.value = currentVal;
+        };
+        
+        const populateAllExerciseSelectors = () => {
+             populateExerciseSelector(dashExerciseSelector);
+        };
+
+        const renderCollapsibleList = (container, title, items, isProtocolList = false) => {
+            container.innerHTML = '';
+            if (items.length === 0) {
+                container.innerHTML = `<p class="text-gray-400">Nenhum item cadastrado.</p>`;
+                return;
+            }
+            const list = document.createElement('div');
+            list.className = 'bg-gray-700 rounded-lg';
+            list.innerHTML = `
+                <button class="w-full flex justify-between items-center p-3 font-semibold text-white collapsible-toggle">
+                    <span>${title}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="collapsible-content p-3 border-t border-gray-600">
+                    <ul class="space-y-2">
+                        ${items.map(item => `
+                            <li class="flex justify-between items-center text-sm">
+                                <span>${isProtocolList ? item.name : item}</span>
+                                <button data-id="${isProtocolList ? item.id : item}" class="delete-btn text-red-500 hover:text-red-400 text-xs">Excluir</button>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+            container.appendChild(list);
+        };
+        
+        const handleAddProtocol = () => {
+            const name = newProtocolNameInput.value.trim();
+            if (!name) return alert('O protocolo precisa de um nome.');
+            const id = `p_${Date.now()}`;
+            protocols[id] = { name, routines: {}, createdAt: Date.now() };
+            newProtocolNameInput.value = '';
+            saveState();
+            populateProtocolSelectors();
+            renderProtocolList();
+            protocolSelectorForm.value = id;
+            protocolFilterSelector.value = id;
+            protocolFilterSelector.dispatchEvent(new Event('change'));
+        };
+
+        const handleDeleteProtocol = (idToDelete) => {
+            const name = protocols[idToDelete]?.name;
+            if (idToDelete && name && confirm(`Tem certeza que deseja excluir o protocolo "${name}" e todas as suas fichas?`)) {
+                delete protocols[idToDelete];
+                saveState();
+                populateProtocolSelectors();
+                renderProtocolList();
+                protocolFilterSelector.dispatchEvent(new Event('change'));
+            }
+        };
+
+        const handleAddExercise = () => {
+            const name = newExerciseNameInput.value.trim();
+            if(!name) return alert('O exercício precisa de um nome.');
+            if(exerciseDatabase.includes(name)) return alert('Este exercício já existe.');
+            exerciseDatabase.push(name);
+            newExerciseNameInput.value = '';
+            saveState();
+            populateAllExerciseSelectors();
+            renderExerciseList();
+        };
+
+        const handleDeleteExercise = (nameToDelete) => {
+            if (confirm(`Tem certeza que deseja excluir o exercício "${nameToDelete}"? Ele será removido de todas as fichas.`)) {
+                exerciseDatabase = exerciseDatabase.filter(ex => ex !== nameToDelete);
+                for (const pId in protocols) {
+                    for (const rId in protocols[pId].routines) {
+                        protocols[pId].routines[rId].exercises = protocols[pId].routines[rId].exercises.filter(ex => ex.name !== nameToDelete);
+                    }
+                }
+                saveState();
+                populateAllExerciseSelectors();
+                renderExerciseList();
+            }
+        };
+
+        const renderProtocolList = () => {
+            const protocolItems = Object.entries(protocols).map(([id, p]) => ({ id, name: p.name }));
+            renderCollapsibleList(protocolListContainer, 'Protocolos Cadastrados', protocolItems, true);
+        };
+        
+        const renderExerciseList = () => {
+            renderCollapsibleList(exerciseListContainer, 'Exercícios Cadastrados', exerciseDatabase.sort(), false);
+        };
+
+        const renderRoutinesForProtocol = (protocolId) => {
+            savedRoutinesContainer.innerHTML = '';
+            if (!protocolId || !protocols[protocolId]) {
+                savedRoutinesContainer.innerHTML = '<p class="text-gray-400">Selecione um protocolo para ver suas fichas.</p>';
+                return;
+            }
+            
+            const routines = protocols[protocolId].routines;
+            if (Object.keys(routines).length === 0) {
+                 savedRoutinesContainer.innerHTML = '<p class="text-gray-400">Nenhuma ficha criada para este protocolo.</p>';
+                 return;
+            }
+
+            for (const id in routines) {
+                const routine = routines[id];
+                const accordion = document.createElement('div');
+                accordion.className = 'bg-gray-700 rounded-lg overflow-hidden';
+                
+                let exercisesHTML = routine.exercises.map(ex => `
+                    <div class="mt-2 pt-2 border-t border-gray-600">
+                        <p class="font-semibold text-white">${ex.name}</p>
+                        <p class="text-xs text-gray-400 italic">Obs: ${ex.observations || 'Nenhuma'}</p>
+                        <table class="w-full text-xs text-left mt-2">
+                            <thead><tr><th class="w-1/3">SET</th><th class="w-1/3">REPS</th><th class="w-1/3">DESCANSO</th></tr></thead>
+                            <tbody>
+                                ${ex.sets.map(s => `<tr><td>${s.setType}</td><td>${s.reps}</td><td>${s.rest}</td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `).join('');
+
+                accordion.innerHTML = `
+                    <button class="collapsible-toggle w-full flex justify-between items-center p-3 font-semibold text-white">
+                        <span>${routine.name}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="collapsible-content p-4 border-t border-gray-600">
+                        ${exercisesHTML}
+                        <div class="mt-4 flex gap-2">
+                            <button data-protocol-id="${protocolId}" data-routine-id="${id}" class="edit-routine-btn text-sm bg-blue-600 px-3 py-1 rounded">Editar</button>
+                            <button data-protocol-id="${protocolId}" data-routine-id="${id}" class="delete-routine-btn text-sm bg-red-600 px-3 py-1 rounded">Excluir</button>
+                        </div>
+                    </div>
+                `;
+                savedRoutinesContainer.appendChild(accordion);
+            }
+        };
+        
+        const addExerciseToBuilder = (exercise = null) => {
+            const exData = exercise || { name: '', observations: '', sets: [] };
+            const numSets = exData.sets.length > 0 ? exData.sets.length : 1;
+
+            const exerciseDiv = document.createElement('div');
+            exerciseDiv.className = 'exercise-block border border-gray-700 p-3 rounded-md space-y-2';
+            
+            let setRowsHTML = '';
+            for(let i = 0; i < numSets; i++) {
+                const s = exData.sets[i] || {};
+                setRowsHTML += `
+                    <div class="grid grid-cols-3 gap-2">
+                        <select class="set-type-input w-full bg-gray-600 p-1 rounded text-xs">${SET_TYPE_OPTIONS.map(o => `<option value="${o}" ${s.setType === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                        <select class="reps-input w-full bg-gray-600 p-1 rounded text-xs">${REPS_OPTIONS.map(o => `<option value="${o}" ${s.reps === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                        <select class="rest-input w-full bg-gray-600 p-1 rounded text-xs">${REST_OPTIONS.map(o => `<option value="${o}" ${s.rest === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                    </div>`;
+            }
+
+            exerciseDiv.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <select class="exercise-name-select w-full bg-gray-700 p-1 rounded text-white font-semibold"></select>
+                    <button class="remove-exercise-btn text-red-500 ml-2 text-lg">&times;</button>
+                </div>
+                <textarea placeholder="Observações..." class="exercise-obs-input w-full bg-gray-700 p-1 rounded text-white text-sm">${exData.observations}</textarea>
+                <div>
+                    <label class="text-xs text-gray-400">Número de Séries:</label>
+                    <select class="num-sets-select w-20 bg-gray-700 p-1 rounded text-white text-sm">
+                        ${[1,2,3,4,5].map(n => `<option value="${n}" ${numSets === n ? 'selected' : ''}>${n}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="set-rows-container space-y-1">${setRowsHTML}</div>
+            `;
+            const nameSelector = exerciseDiv.querySelector('.exercise-name-select');
+            populateExerciseSelector(nameSelector);
+            if (exData.name) nameSelector.value = exData.name;
+            routineExercisesBuilder.appendChild(exerciseDiv);
+        };
+
+        const handleSaveRoutine = () => {
+            const protocolId = protocolSelectorForm.value;
+            if (!protocolId) return alert('Selecione um protocolo primeiro.');
+
+            const name = routineNameInput.value.trim();
+            const editingId = editingRoutineIdInput.value;
+            if (!name) return alert('A ficha precisa de um nome.');
+
+            const exercises = [];
+            const exerciseBlocks = routineExercisesBuilder.querySelectorAll('.exercise-block');
+            
+            for (const block of exerciseBlocks) {
+                const exerciseName = block.querySelector('.exercise-name-select').value;
+                if (!exerciseName) continue;
+                
+                const observations = block.querySelector('.exercise-obs-input').value.trim();
+                const sets = [];
+                const setRows = block.querySelectorAll('.set-rows-container > div');
+                for (const row of setRows) {
+                    sets.push({
+                        setType: row.querySelector('.set-type-input').value,
+                        reps: row.querySelector('.reps-input').value,
+                        rest: row.querySelector('.rest-input').value,
+                    });
+                }
+                exercises.push({ name: exerciseName, observations, sets });
+            }
+
+            if (exercises.length === 0) return alert('Adicione pelo menos um exercício à ficha.');
+            
+            const id = editingId || `r_${Date.now()}`;
+            protocols[protocolId].routines[id] = { name, exercises };
+            
+            saveState();
+            protocolFilterSelector.value = protocolId;
+            renderRoutinesForProtocol(protocolId);
+            resetRoutineForm();
+        };
+        
+        const resetRoutineForm = () => {
+            routineNameInput.value = '';
+            routineExercisesBuilder.innerHTML = '';
+            editingRoutineIdInput.value = '';
+            routineFormTitle.textContent = 'Criar Nova Ficha';
+            saveRoutineBtn.textContent = 'Salvar Ficha';
+            cancelEditBtn.classList.add('hidden');
+        };
+
+        const resetDailyWorkoutForm = () => {
+            dailyProtocolSelector.value = '';
+            dailyRoutineSelector.innerHTML = '<option value="">-- Selecione uma Ficha --</option>';
+            dailyRoutineSelector.disabled = true;
+            dailyExercisesContainer.innerHTML = '<p class="text-gray-400 text-center">Selecione um protocolo e uma ficha para começar.</p>';
+            saveWorkoutBtn.disabled = true;
+            workoutDateInput.valueAsDate = new Date();
+        };
+
+        const renderDailyWorkout = (protocolId, routineId) => {
+            dailyExercisesContainer.innerHTML = '';
+            if (!protocolId || !routineId || !protocols[protocolId]?.routines[routineId]) {
+                 dailyExercisesContainer.innerHTML = '<p class="text-gray-400 text-center">Selecione um protocolo e uma ficha para começar.</p>';
+                 saveWorkoutBtn.disabled = true;
+                 return;
+            }
+            saveWorkoutBtn.disabled = false;
+            protocols[protocolId].routines[routineId].exercises.forEach(ex => {
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'bg-gray-700 p-4 rounded-lg';
+                
+                let setsHTML = ex.sets.map((s, i) => `
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center text-sm p-2 bg-gray-800 rounded">
+                        <div class="sm:col-span-2"><strong>Série ${i+1}:</strong> ${s.setType} (${s.reps})</div>
+                        <div class="sm:col-span-1"><strong>Descanso:</strong> ${s.rest}</div>
+                        <input type="number" placeholder="Carga (kg)" class="daily-load-input w-full p-1 rounded bg-gray-600 text-white">
+                        <input type="number" placeholder="Reps Feitas" class="daily-reps-input w-full p-1 rounded bg-gray-600 text-white">
+                    </div>
+                `).join('');
+
+                exerciseDiv.innerHTML = `
+                    <h3 class="font-semibold text-lg text-white mb-2">${ex.name}</h3>
+                    <p class="text-xs text-gray-400 italic mb-3">Obs: ${ex.observations || 'Nenhuma'}</p>
+                    <div class="space-y-2">${setsHTML}</div>
+                `;
+                dailyExercisesContainer.appendChild(exerciseDiv);
+            });
+        };
+
+        const handleSaveWorkout = () => {
+            const date = workoutDateInput.value;
+            if (!date) return alert("Por favor, selecione a data do treino.");
+
+            if (workoutHistory[date]) {
+                alert('Já existe um treino registrado para esta data. Não é possível salvar outro.');
+                return;
+            }
+
+            const protocolId = dailyProtocolSelector.value;
+            const routineId = dailyRoutineSelector.value;
+            const routine = protocols[protocolId]?.routines[routineId];
+            if (!routine) return;
+
+            const finalWorkout = [];
+            routine.exercises.forEach((ex, index) => {
+                const exerciseContainer = dailyExercisesContainer.children[index];
+                const setsData = [];
+                const setRows = exerciseContainer.querySelectorAll('.grid');
+                setRows.forEach((row, setIndex) => {
+                    const load = parseFloat(row.querySelector('.daily-load-input').value);
+                    const reps = parseInt(row.querySelector('.daily-reps-input').value);
+                    if (!isNaN(load) && !isNaN(reps)) {
+                        setsData.push({ 
+                            load, 
+                            reps,
+                            setType: ex.sets[setIndex].setType
+                        });
+                    }
+                });
+                if (setsData.length > 0) {
+                    finalWorkout.push({ name: ex.name, sets: setsData });
+                }
+            });
+
+            if (finalWorkout.length === 0) return alert("Preencha pelo menos uma série para salvar o treino.");
+
+            const historyEntry = { protocolId, routineId, exercises: finalWorkout };
+            workoutHistory[date] = historyEntry;
+            
+            saveState();
+            renderHistory();
+            updateDashboard();
+            alert("Treino salvo com sucesso!");
+            resetDailyWorkoutForm();
+        };
+        
+        const handleSaveCardio = () => {
+            const date = cardioDateInput.value;
+            const exercise = cardioExerciseSelector.value;
+            const time = parseInt(cardioTimeInput.value);
+
+            if (!date || !exercise || isNaN(time) || time <= 0) {
+                alert("Por favor, preencha todos os campos corretamente.");
+                return;
+            }
+
+            const existingEntryIndex = cardioHistory.findIndex(entry => entry.date === date);
+            if (existingEntryIndex !== -1) {
+                alert("Já existe um registro de cardio para esta data. Conforme a instrução, some os tempos e edite o registro existente (funcionalidade futura) ou remova o antigo.");
+                return;
+            }
+
+            cardioHistory.push({ date, exercise, time });
+            saveState();
+            renderCardioHistory();
+            alert("Treino de cardio salvo com sucesso!");
+            cardioTimeInput.value = '';
+        };
+
+        const renderHistory = () => {
+            historyContainer.innerHTML = Object.keys(workoutHistory).length === 0 ? '<p class="text-center text-gray-400">Nenhum treino salvo ainda.</p>' : '';
+            const sortedDates = Object.keys(workoutHistory).sort((a, b) => new Date(a) - new Date(b));
+
+            sortedDates.forEach(date => {
+                const entry = workoutHistory[date];
+                const protocolName = protocols[entry.protocolId]?.name || 'Protocolo Deletado';
+                const routineName = protocols[entry.protocolId]?.routines[entry.routineId]?.name || 'Ficha Deletada';
+
+                const historyCard = document.createElement('div');
+                historyCard.className = 'bg-gray-700 p-5 rounded-lg shadow-lg';
+                historyCard.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-bold text-teal-400">${new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</h3>
+                    </div>
+                    <p class="text-md text-gray-300 mb-4"><strong>Protocolo:</strong> ${protocolName} / <strong>Ficha:</strong> ${routineName}</p>
+                    <div class="space-y-2">${entry.exercises.map(ex => `
+                        <div class="py-2 border-t border-gray-600">
+                            <span class="font-medium text-white">${ex.name}</span>
+                            <ul class="text-sm text-gray-400 mt-1 pl-4">${ex.sets.map((s, i) => `<li>Série ${i+1} (${s.setType}): ${s.load} kg x ${s.reps} reps</li>`).join('')}</ul>
+                        </div>`).join('')}
+                    </div>`;
+                historyContainer.appendChild(historyCard);
+            });
+        };
+        
+        const renderCardioHistory = () => {
+            const filter = cardioHistoryFilter.value;
+            const filtered = cardioHistory.filter(entry => filter === 'Todos' || entry.exercise === filter);
+            
+            if (filtered.length === 0) {
+                cardioHistoryContainer.innerHTML = '<p class="text-center text-gray-400">Nenhum registro de cardio encontrado.</p>';
+                return;
+            }
+            
+            const sorted = filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            cardioHistoryContainer.innerHTML = `
+                <table class="w-full text-left text-gray-300">
+                    <thead class="bg-gray-700 text-xs uppercase">
+                        <tr>
+                            <th class="px-6 py-3">Data</th>
+                            <th class="px-6 py-3">Exercício</th>
+                            <th class="px-6 py-3">Tempo (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sorted.map(entry => `
+                            <tr class="border-b border-gray-700">
+                                <td class="px-6 py-4">${new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                                <td class="px-6 py-4">${entry.exercise}</td>
+                                <td class="px-6 py-4">${entry.time}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        };
+
+        const updateDashboard = () => {
+            let protocolId = dashProtocolSelector.value;
+            let routineId = dashRoutineSelector.value;
+            const exerciseName = dashExerciseSelector.value;
+            const setType = dashSetTypeSelector.value;
+            const chartType = document.querySelector('input[name="chart-type"]:checked').value;
+
+            if (dashboardChartInstance) dashboardChartInstance.destroy();
+            
+            const showMessage = (msg) => {
+                dashboardChartCanvas.style.display = 'none';
+                dashboardChartMessage.textContent = msg;
+                dashboardChartMessage.style.display = 'block';
+            };
+
+            let filteredHistory = Object.entries(workoutHistory);
+            if (protocolId) filteredHistory = filteredHistory.filter(([d, e]) => e.protocolId === protocolId);
+            if (routineId) filteredHistory = filteredHistory.filter(([d, e]) => e.routineId === routineId);
+            if (exerciseName) filteredHistory = filteredHistory.filter(([d, e]) => e.exercises.some(ex => ex.name === exerciseName));
+
+            if (filteredHistory.length === 0) {
+                showMessage('Nenhum dado encontrado para os filtros selecionados.');
+                return;
+            }
+
+            const sortedDates = [...new Set(filteredHistory.map(([date, entry]) => date))].sort((a, b) => new Date(a) - new Date(b));
+            const allLabels = sortedDates.map(date => new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
+            let datasets = [];
+            let options = { responsive: true, scales: { x: { ticks: { color: '#d1d5db' }, grid: { color: '#374151' } } }, plugins: { legend: { labels: { color: '#d1d5db' } } } };
+
+            // Modo de Análise por Exercício
+            if (exerciseName) {
+                chartTypeContainer.style.display = 'flex';
+                dashSetTypeSelector.disabled = false;
+                const historyBySetType = {};
+                SET_TYPE_OPTIONS.forEach(st => historyBySetType[st] = {});
+
+                sortedDates.forEach(date => {
+                    const entry = workoutHistory[date];
+                    if (!entry) return;
+                    
+                    const exerciseData = entry.exercises.find(ex => ex.name === exerciseName);
+                    if (exerciseData) {
+                        const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+                        exerciseData.sets.forEach(set => {
+                            if (historyBySetType[set.setType] && !historyBySetType[set.setType][formattedDate]) {
+                                historyBySetType[set.setType][formattedDate] = { loads: [], reps: [] };
+                            }
+                            if(historyBySetType[set.setType]) {
+                                historyBySetType[set.setType][formattedDate].loads.push(set.load);
+                                historyBySetType[set.setType][formattedDate].reps.push(set.reps);
+                            }
+                        });
+                    }
+                });
+
+                const finalDataBySetType = {};
+                for (const sType in historyBySetType) {
+                    finalDataBySetType[sType] = {};
+                    for (const date in historyBySetType[sType]) {
+                        finalDataBySetType[sType][date] = {
+                            maxLoad: Math.max(0, ...historyBySetType[sType][date].loads),
+                            maxReps: Math.max(0, ...historyBySetType[sType][date].reps)
+                        };
+                    }
+                }
+
+                const typesToDraw = setType === 'Todos' ? SET_TYPE_OPTIONS : [setType];
+                typesToDraw.forEach(st => {
+                    const historyForSet = finalDataBySetType[st];
+                    if (historyForSet && Object.keys(historyForSet).length > 0) {
+                        if (chartType === 'load' || chartType === 'both') {
+                            datasets.push({ label: `${st} - Carga`, data: allLabels.map(l => historyForSet[l]?.maxLoad ?? null), borderColor: CHART_COLORS[st], yAxisID: 'yLoad', tension: 0.1, spanGaps: true });
+                        }
+                        if (chartType === 'reps' || chartType === 'both') {
+                            datasets.push({ label: `${st} - Reps`, data: allLabels.map(l => historyForSet[l]?.maxReps ?? null), borderColor: CHART_COLORS[st], borderDash: [5, 5], yAxisID: 'yReps', tension: 0.1, spanGaps: true });
+                        }
+                    }
+                });
+                
+                if(chartType === 'load' || chartType === 'both') options.scales.yLoad = { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Carga (kg)', color: '#d1d5db'}, ticks: { color: '#d1d5db' }, grid: { color: '#374151' } };
+                if(chartType === 'reps' || chartType === 'both') options.scales.yReps = { type: 'linear', display: true, position: chartType === 'both' ? 'right' : 'left', title: { display: true, text: 'Repetições', color: '#d1d5db'}, ticks: { color: '#d1d5db' }, grid: { drawOnChartArea: chartType !== 'both' } };
+            } 
+            // Modo de Análise por Protocolo/Ficha
+            else if (protocolId) {
+                chartTypeContainer.style.display = 'none';
+                dashSetTypeSelector.disabled = true;
+                
+                // Nível de Protocolo (comparando fichas)
+                if (!routineId) {
+                    const routinesData = {};
+                    filteredHistory.forEach(([date, entry]) => {
+                        const routineName = protocols[protocolId]?.routines[entry.routineId]?.name || 'Ficha Deletada';
+                        if (!routinesData[routineName]) routinesData[routineName] = {};
+                        const totalVolume = entry.exercises.reduce((vol, ex) => vol + ex.sets.reduce((setVol, s) => setVol + (s.load * s.reps), 0), 0);
+                        const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+                        routinesData[routineName][formattedDate] = (routinesData[routineName][formattedDate] || 0) + totalVolume;
+                    });
+                    Object.keys(routinesData).forEach((routineName, index) => {
+                        datasets.push({ label: `Volume - ${routineName}`, data: allLabels.map(l => routinesData[routineName][l] || null), borderColor: CHART_COLORS.DEFAULT[index % CHART_COLORS.DEFAULT.length], tension: 0.1, spanGaps: true });
+                    });
+                    options.scales.y = { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Volume Total (kg)', color: '#d1d5db' }, ticks: { color: '#d1d5db' }, grid: { color: '#374151' } };
+                }
+                // Nível de Ficha (comparando exercícios)
+                else {
+                    const exercisesData = {};
+                    filteredHistory.forEach(([date, entry]) => {
+                         entry.exercises.forEach(ex => {
+                            if (!exercisesData[ex.name]) exercisesData[ex.name] = {};
+                            const maxLoad = Math.max(0, ...ex.sets.map(s => s.load));
+                            const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+                            exercisesData[ex.name][formattedDate] = maxLoad;
+                        });
+                    });
+                    Object.keys(exercisesData).forEach((exName, index) => {
+                        datasets.push({ label: `Carga Máx - ${exName}`, data: allLabels.map(l => exercisesData[exName][l] || null), borderColor: CHART_COLORS.DEFAULT[index % CHART_COLORS.DEFAULT.length], tension: 0.1, spanGaps: true });
+                    });
+                    options.scales.y = { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Carga Máxima (kg)', color: '#d1d5db' }, ticks: { color: '#d1d5db' }, grid: { color: '#374151' } };
+                }
+            } else {
+                showMessage('Selecione um exercício ou um protocolo para analisar.');
+                return;
+            }
+
+            if (datasets.length === 0 || datasets.every(ds => ds.data.every(d => d === null))) {
+                showMessage('Nenhum dado encontrado para os filtros selecionados.');
+                return;
+            }
+
+            dashboardChartCanvas.style.display = 'block';
+            dashboardChartMessage.style.display = 'none';
+            dashboardChartInstance = new Chart(dashboardChartCanvas, { type: 'line', data: { labels: allLabels, datasets }, options });
+        };
+        
+        const exportElementToPDF = (element, filename) => {
+            const { jsPDF } = window.jspdf;
+
+            html2canvas(element, { 
+                scale: 2, 
+                backgroundColor: '#111827',
+                onclone: (document) => {
+                    document.querySelectorAll('.collapsible-content').forEach(el => el.classList.add('open'));
+                }
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                let heightLeft = pdfHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                heightLeft -= pdf.internal.pageSize.getHeight();
+
+                while (heightLeft > 0) {
+                    position -= pdf.internal.pageSize.getHeight();
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                    heightLeft -= pdf.internal.pageSize.getHeight();
+                }
+                pdf.save(filename);
+            });
+        };
+
+        // --- EVENT LISTENERS ---
+        const setupEventListeners = () => {
+            navButtons.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.page)));
+            
+            addProtocolBtn.addEventListener('click', handleAddProtocol);
+            addExerciseBtn.addEventListener('click', handleAddExercise);
+            
+            document.body.addEventListener('click', e => {
+                if (e.target.closest('.collapsible-toggle')) {
+                    const btn = e.target.closest('.collapsible-toggle');
+                    btn.classList.toggle('open');
+                    btn.nextElementSibling.classList.toggle('open');
+                }
+                if (e.target.classList.contains('delete-btn')) {
+                    const id = e.target.dataset.id;
+                    if (e.target.closest('#protocol-list-container')) {
+                        handleDeleteProtocol(id);
+                    }
+                    if (e.target.closest('#exercise-list-container')) {
+                        handleDeleteExercise(id);
+                    }
+                }
+            });
+
+            protocolFilterSelector.addEventListener('change', e => renderRoutinesForProtocol(e.target.value));
+            addExerciseToRoutineBtn.addEventListener('click', () => addExerciseToBuilder());
+            
+            routineExercisesBuilder.addEventListener('click', e => {
+                if (e.target.classList.contains('remove-exercise-btn')) {
+                    e.target.closest('.exercise-block').remove();
+                }
+            });
+
+            routineExercisesBuilder.addEventListener('change', e => {
+                if (e.target.classList.contains('num-sets-select')) {
+                    const numSets = parseInt(e.target.value);
+                    const container = e.target.closest('.exercise-block').querySelector('.set-rows-container');
+                    let newRowsHTML = '';
+                    for (let i = 0; i < numSets; i++) {
+                        newRowsHTML += `
+                        <div class="grid grid-cols-3 gap-2">
+                            <select class="set-type-input w-full bg-gray-600 p-1 rounded text-xs">${SET_TYPE_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
+                            <select class="reps-input w-full bg-gray-600 p-1 rounded text-xs">${REPS_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
+                            <select class="rest-input w-full bg-gray-600 p-1 rounded text-xs">${REST_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
+                        </div>`;
+                    }
+                    container.innerHTML = newRowsHTML;
+                }
+            });
+
+            saveRoutineBtn.addEventListener('click', handleSaveRoutine);
+            savedRoutinesContainer.addEventListener('click', (e) => {
+                const target = e.target;
+                const protocolId = target.dataset.protocolId;
+                const routineId = target.dataset.routineId;
+
+                if (target.classList.contains('delete-routine-btn')) {
+                    if (confirm('Tem certeza que deseja excluir esta ficha?')) {
+                        delete protocols[protocolId].routines[routineId];
+                        saveState();
+                        renderRoutinesForProtocol(protocolId);
+                    }
+                }
+                if (target.classList.contains('edit-routine-btn')) {
+                    resetRoutineForm();
+                    const routine = protocols[protocolId].routines[routineId];
+                    routineFormTitle.textContent = 'Editando Ficha';
+                    saveRoutineBtn.textContent = 'Salvar Alterações';
+                    cancelEditBtn.classList.remove('hidden');
+                    editingRoutineIdInput.value = routineId;
+                    protocolSelectorForm.value = protocolId;
+                    routineNameInput.value = routine.name;
+                    routine.exercises.forEach(ex => addExerciseToBuilder(ex));
+                }
+            });
+            cancelEditBtn.addEventListener('click', resetRoutineForm);
+
+            dailyProtocolSelector.addEventListener('change', (e) => {
+                populateRoutinesForSelector(e.target.value, dailyRoutineSelector);
+                renderDailyWorkout(null, null);
+            });
+            dailyRoutineSelector.addEventListener('change', (e) => {
+                renderDailyWorkout(dailyProtocolSelector.value, e.target.value);
+            });
+            saveWorkoutBtn.addEventListener('click', handleSaveWorkout);
+            
+            saveCardioBtn.addEventListener('click', handleSaveCardio);
+            cardioHistoryFilter.addEventListener('change', renderCardioHistory);
+
+            // Dashboard Listeners
+            [dashProtocolSelector, dashRoutineSelector, dashExerciseSelector, dashSetTypeSelector].forEach(sel => {
+                sel.addEventListener('change', updateDashboard);
+            });
+            chartTypeRadios.forEach(radio => radio.addEventListener('change', updateDashboard));
+
+            dashProtocolSelector.addEventListener('change', () => {
+                populateRoutinesForSelector(dashProtocolSelector.value, dashRoutineSelector);
+                dashRoutineSelector.disabled = !dashProtocolSelector.value;
+            });
+
+            dashExerciseSelector.addEventListener('change', () => {
+                 dashSetTypeSelector.innerHTML = '<option value="Todos">Todos</option>';
+                 SET_TYPE_OPTIONS.forEach(opt => dashSetTypeSelector.innerHTML += `<option value="${opt}">${opt}</option>`);
+                 dashSetTypeSelector.disabled = !dashExerciseSelector.value;
+            });
+            
+            exportHistoryBtn.addEventListener('click', () => exportElementToPDF(historyContainer.parentElement, 'historico_treino.pdf'));
+            exportDashboardBtn.addEventListener('click', () => exportElementToPDF(dashboardContent, 'dashboard_treino.pdf'));
+            exportCardioHistoryBtn.addEventListener('click', () => exportElementToPDF(cardioHistoryContent, 'historico_cardio.pdf'));
+        };
+
+        // --- INICIALIZAÇÃO ---
+        const init = () => {
+            workoutDateInput.valueAsDate = new Date();
+            cardioDateInput.valueAsDate = new Date();
+            populateProtocolSelectors();
+            populateAllExerciseSelectors();
+            renderProtocolList();
+            renderExerciseList();
+            renderRoutinesForProtocol(protocolFilterSelector.value);
+            renderHistory();
+            renderCardioHistory();
+            setupEventListeners();
+            updateDashboard();
+            switchPage('protocols');
+        };
+
+        const populateRoutinesForSelector = (protocolId, selector) => {
+            selector.innerHTML = '<option value="">-- Todas --</option>';
+            selector.disabled = true;
+            if (protocolId && protocols[protocolId]) {
+                for (const id in protocols[protocolId].routines) {
+                    selector.innerHTML += `<option value="${id}">${protocols[protocolId].routines[id].name}</option>`;
+                }
+                selector.disabled = false;
+            }
+        };
+
+        init();
+    });
+    </script>
+</body>
+</html>
