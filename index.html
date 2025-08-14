@@ -104,7 +104,7 @@
             <button data-page="body-measures" class="nav-btn active flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-ruler-combined mr-2"></i>Medidas Corporais</button>
             <button data-page="measures-comparison" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-table mr-2"></i>Comparativo de Medidas</button>
             <button data-page="protocols" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-sitemap mr-2"></i>Protocolos e Fichas</button>
-            <button data-page="daily-workout" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-dumbbell mr-2"></i>Treino do Dia</button>
+            <button data-page="daily-workout" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-dumbbell mr-2"></i>Registro de Treino</button>
             <button data-page="history" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-history mr-2"></i>Histórico - Treino</button>
             <button data-page="dashboard" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-chart-line mr-2"></i>Dashboard - Treino</button>
             <button data-page="cardio" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-heart-pulse mr-2"></i>Cardio</button>
@@ -173,7 +173,7 @@
                             <span id="imc-result" class="text-2xl font-bold text-blue-400">--</span>
                         </div>
                         <button id="save-measures-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md"><i class="fas fa-save mr-2"></i>Salvar Medidas</button>
-                        <p id="measure-error-message" class="text-red-500 text-sm text-center mt-2 h-4"></p>
+                        <p id="measure-message" class="text-sm text-center mt-2 h-4"></p>
                     </div>
                 </div>
             </div>
@@ -251,10 +251,10 @@
                 </div>
             </div>
 
-            <!-- PÁGINA 4: TREINO DO DIA -->
+            <!-- PÁGINA 4: REGISTRO DE TREINO -->
             <div id="daily-workout" class="page">
                 <div class="card p-6">
-                    <h2 class="text-2xl font-bold mb-4 text-white">Registre o Treino de Hoje</h2>
+                    <h2 class="text-2xl font-bold mb-4 text-white">Registro de Treino</h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
                             <label for="daily-protocol-selector" class="block text-sm font-medium text-gray-400 mb-1">1. Protocolo</label>
@@ -275,7 +275,7 @@
                     <button id="save-workout-btn" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow-lg disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
                         <i class="fas fa-save mr-2"></i>Salvar Treino do Dia
                     </button>
-                    <p id="workout-error-message" class="text-red-500 text-sm text-center mt-2 h-4"></p>
+                    <p id="workout-message" class="text-sm text-center mt-2 h-4"></p>
                 </div>
             </div>
             
@@ -354,7 +354,7 @@
                             <input type="number" id="cardio-time" placeholder="Ex: 30" class="input-field w-full rounded-md p-2">
                         </div>
                         <button id="save-cardio-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md"><i class="fas fa-save mr-2"></i>Salvar Cardio</button>
-                        <p id="cardio-error-message" class="text-red-500 text-sm text-center mt-2 h-4"></p>
+                        <p id="cardio-message" class="text-sm text-center mt-2 h-4"></p>
                     </div>
                 </div>
             </div>
@@ -464,13 +464,13 @@
         const workoutDateInput = document.getElementById('workout-date');
         const dailyExercisesContainer = document.getElementById('daily-exercises-container');
         const saveWorkoutBtn = document.getElementById('save-workout-btn');
-        const workoutErrorMessage = document.getElementById('workout-error-message');
+        const workoutErrorMessage = document.getElementById('workout-message');
 
         const cardioDateInput = document.getElementById('cardio-date');
         const cardioExerciseSelector = document.getElementById('cardio-exercise-selector');
         const cardioTimeInput = document.getElementById('cardio-time');
         const saveCardioBtn = document.getElementById('save-cardio-btn');
-        const cardioErrorMessage = document.getElementById('cardio-error-message');
+        const cardioErrorMessage = document.getElementById('cardio-message');
 
         const historyContainer = document.getElementById('history-container');
         const exportHistoryBtn = document.getElementById('export-history-pdf');
@@ -499,7 +499,7 @@
         const saveMeasuresBtn = document.getElementById('save-measures-btn');
         const imcResult = document.getElementById('imc-result');
         const measuresComparisonContainer = document.getElementById('measures-comparison-container');
-        const measureErrorMessage = document.getElementById('measure-error-message');
+        const measureErrorMessage = document.getElementById('measure-message');
         const exportMeasuresPdfBtn = document.getElementById('export-measures-pdf');
         const exportMeasuresExcelBtn = document.getElementById('export-measures-excel');
         const measureInputs = {
@@ -864,7 +864,15 @@
             saveState();
             renderHistory();
             updateDashboard();
-            alert("Treino salvo com sucesso!");
+            
+            workoutErrorMessage.classList.remove('text-red-500');
+            workoutErrorMessage.classList.add('text-green-500');
+            workoutErrorMessage.textContent = "Treino registrado com sucesso.";
+            setTimeout(() => {
+                workoutErrorMessage.textContent = '';
+                workoutErrorMessage.classList.remove('text-green-500');
+            }, 3000);
+
             resetDailyWorkoutForm();
         };
         
@@ -888,7 +896,15 @@
             cardioHistory.push({ date, exercise, time });
             saveState();
             renderCardioHistory();
-            alert("Treino de cardio salvo com sucesso!");
+            
+            cardioErrorMessage.classList.remove('text-red-500');
+            cardioErrorMessage.classList.add('text-green-500');
+            cardioErrorMessage.textContent = "Cardio registrado com sucesso.";
+            setTimeout(() => {
+                cardioErrorMessage.textContent = '';
+                cardioErrorMessage.classList.remove('text-green-500');
+            }, 3000);
+
             cardioTimeInput.value = '';
         };
 
@@ -906,6 +922,7 @@
                 historyCard.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
                         <h3 class="text-xl font-bold text-blue-400">${new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</h3>
+                        <button data-id="${date}" class="delete-workout-btn text-red-500 hover:text-red-400 text-xs"><i class="fas fa-trash fa-lg"></i></button>
                     </div>
                     <p class="text-md text-gray-300 mb-4"><strong>Protocolo:</strong> ${protocolName} / <strong>Ficha:</strong> ${routineName}</p>
                     <div class="space-y-2">${entry.exercises.map(ex => `
@@ -936,6 +953,7 @@
                             <th class="px-6 py-3">Data</th>
                             <th class="px-6 py-3">Exercício</th>
                             <th class="px-6 py-3">Tempo (min)</th>
+                            <th class="px-6 py-3">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -944,6 +962,9 @@
                                 <td class="px-6 py-4">${new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                                 <td class="px-6 py-4">${entry.exercise}</td>
                                 <td class="px-6 py-4">${entry.time}</td>
+                                <td class="px-6 py-4">
+                                    <button data-id="${entry.date}" class="delete-cardio-btn text-red-500 hover:text-red-400 text-xs"><i class="fas fa-trash fa-lg"></i></button>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -980,7 +1001,15 @@
             bodyMeasuresHistory.push({ date, measures: newMeasures });
             saveState();
             renderMeasuresComparison();
-            alert("Medidas salvas com sucesso!");
+            
+            measureErrorMessage.classList.remove('text-red-500');
+            measureErrorMessage.classList.add('text-green-500');
+            measureErrorMessage.textContent = "Medidas salvas com sucesso.";
+            setTimeout(() => {
+                measureErrorMessage.textContent = '';
+                measureErrorMessage.classList.remove('text-green-500');
+            }, 3000);
+
             resetMeasuresForm();
         };
         
@@ -1021,6 +1050,14 @@
                     ${sortedHistory.map(entry => `<td class="px-6 py-4">${entry.measures[key] || '--'}</td>`).join('')}
                 </tr>`;
             });
+            
+            // Linha de Ações para Excluir
+            tableHTML += `<tr class="border-b border-gray-700">
+                <td class="px-6 py-4 font-semibold">Ações</td>
+                ${sortedHistory.map(entry => `<td class="px-6 py-4 text-center">
+                    <button data-id="${entry.date}" class="delete-measure-btn text-red-500 hover:text-red-400 text-xs"><i class="fas fa-trash fa-lg"></i></button>
+                </td>`).join('')}
+            </tr>`;
 
             tableHTML += `</tbody></table>`;
             measuresComparisonContainer.innerHTML = tableHTML;
@@ -1404,6 +1441,44 @@
             // Dados Listeners
             exportDataBtn.addEventListener('click', handleExportData);
             importDataInput.addEventListener('change', handleImportData);
+            
+            // Listeners para Exclusão de Histórico
+            historyContainer.addEventListener('click', e => {
+                const deleteBtn = e.target.closest('.delete-workout-btn');
+                if (deleteBtn) {
+                    const date = deleteBtn.dataset.id;
+                    if (confirm(`Tem certeza que deseja excluir o treino do dia ${new Date(date + 'T00:00:00').toLocaleDateString('pt-BR')}?`)) {
+                        delete workoutHistory[date];
+                        saveState();
+                        renderHistory();
+                        updateDashboard();
+                    }
+                }
+            });
+
+            cardioHistoryContainer.addEventListener('click', e => {
+                const deleteBtn = e.target.closest('.delete-cardio-btn');
+                if (deleteBtn) {
+                    const date = deleteBtn.dataset.id;
+                    if (confirm(`Tem certeza que deseja excluir o cardio do dia ${new Date(date + 'T00:00:00').toLocaleDateString('pt-BR')}?`)) {
+                        cardioHistory = cardioHistory.filter(entry => entry.date !== date);
+                        saveState();
+                        renderCardioHistory();
+                    }
+                }
+            });
+
+            measuresComparisonContainer.addEventListener('click', e => {
+                const deleteBtn = e.target.closest('.delete-measure-btn');
+                if (deleteBtn) {
+                    const date = deleteBtn.dataset.id;
+                    if (confirm(`Tem certeza que deseja excluir as medidas do dia ${new Date(date + 'T00:00:00').toLocaleDateString('pt-BR')}?`)) {
+                        bodyMeasuresHistory = bodyMeasuresHistory.filter(entry => entry.date !== date);
+                        saveState();
+                        renderMeasuresComparison();
+                    }
+                }
+            });
         };
 
         // --- INICIALIZAÇÃO ---
