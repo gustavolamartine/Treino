@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diário de Treino</title>
+    <title>Diário de Treino v16</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -171,6 +171,7 @@
                         <div class="pt-4 border-t border-gray-700 text-center">
                             <label class="block text-sm font-medium text-gray-400 mb-1">IMC Calculado</label>
                             <span id="imc-result" class="text-2xl font-bold text-blue-400">--</span>
+                            <p id="imc-classification" class="text-sm text-gray-400 h-4 mt-1"></p>
                         </div>
                         <button id="save-measures-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md"><i class="fas fa-save mr-2"></i>Salvar Medidas</button>
                         <p id="measure-message" class="text-sm text-center mt-2 h-4"></p>
@@ -232,6 +233,7 @@
                             <button id="add-exercise-to-routine-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md"><i class="fas fa-plus-circle mr-2"></i>Adicionar Exercício à Ficha</button>
                             
                             <button id="save-routine-btn" class="btn-primary w-full py-2 px-4 rounded-md">Salvar Ficha</button>
+                            <p id="routine-error-message" class="text-red-500 text-sm text-center mt-2 h-4"></p>
                             <button id="cancel-edit-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md hidden">Cancelar Edição</button>
                         </div>
                     </div>
@@ -458,6 +460,7 @@
         const editingRoutineIdInput = document.getElementById('editing-routine-id');
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
         const exportRoutinesPdfBtn = document.getElementById('export-routines-pdf');
+        const routineErrorMessage = document.getElementById('routine-error-message');
 
         const dailyProtocolSelector = document.getElementById('daily-protocol-selector');
         const dailyRoutineSelector = document.getElementById('daily-routine-selector');
@@ -498,6 +501,7 @@
         const measureDateInput = document.getElementById('measure-date');
         const saveMeasuresBtn = document.getElementById('save-measures-btn');
         const imcResult = document.getElementById('imc-result');
+        const imcClassification = document.getElementById('imc-classification');
         const measuresComparisonContainer = document.getElementById('measures-comparison-container');
         const measureErrorMessage = document.getElementById('measure-message');
         const exportMeasuresPdfBtn = document.getElementById('export-measures-pdf');
@@ -704,9 +708,18 @@
                 const s = exData.sets[i] || {};
                 setRowsHTML += `
                     <div class="grid grid-cols-3 gap-2">
-                        <select class="set-type-input w-full input-field rounded text-xs p-1">${SET_TYPE_OPTIONS.map(o => `<option value="${o}" ${s.setType === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
-                        <select class="reps-input w-full input-field rounded text-xs p-1">${REPS_OPTIONS.map(o => `<option value="${o}" ${s.reps === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
-                        <select class="rest-input w-full input-field rounded text-xs p-1">${REST_OPTIONS.map(o => `<option value="${o}" ${s.rest === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                        <select class="set-type-input w-full input-field rounded text-xs p-1">
+                            <option value="" disabled ${!s.setType ? 'selected' : ''}>-- Set --</option>
+                            ${SET_TYPE_OPTIONS.map(o => `<option value="${o}" ${s.setType === o ? 'selected' : ''}>${o}</option>`).join('')}
+                        </select>
+                        <select class="reps-input w-full input-field rounded text-xs p-1">
+                            <option value="" disabled ${!s.reps ? 'selected' : ''}>-- Reps --</option>
+                            ${REPS_OPTIONS.map(o => `<option value="${o}" ${s.reps === o ? 'selected' : ''}>${o}</option>`).join('')}
+                        </select>
+                        <select class="rest-input w-full input-field rounded text-xs p-1">
+                            <option value="" disabled ${!s.rest ? 'selected' : ''}>-- Descanso --</option>
+                            ${REST_OPTIONS.map(o => `<option value="${o}" ${s.rest === o ? 'selected' : ''}>${o}</option>`).join('')}
+                        </select>
                     </div>`;
             }
 
@@ -732,33 +745,58 @@
 
         const handleSaveRoutine = () => {
             const protocolId = protocolSelectorForm.value;
-            if (!protocolId) return alert('Selecione um protocolo primeiro.');
+            routineErrorMessage.textContent = '';
+            if (!protocolId) {
+                routineErrorMessage.textContent = 'Selecione um protocolo para salvar a ficha.';
+                return;
+            }
 
             const name = routineNameInput.value.trim();
             const editingId = editingRoutineIdInput.value;
-            if (!name) return alert('A ficha precisa de um nome.');
+            if (!name) {
+                routineErrorMessage.textContent = 'A ficha precisa de um nome.';
+                return;
+            }
 
             const exercises = [];
             const exerciseBlocks = routineExercisesBuilder.querySelectorAll('.exercise-block');
-            
+
+            if (exerciseBlocks.length === 0) {
+                routineErrorMessage.textContent = 'Adicione pelo menos um exercício à ficha.';
+                return;
+            }
+
+            let validationPassed = true;
             for (const block of exerciseBlocks) {
                 const exerciseName = block.querySelector('.exercise-name-select').value;
-                if (!exerciseName) continue;
+                if (!exerciseName) {
+                    routineErrorMessage.textContent = 'Selecione um nome para cada exercício adicionado.';
+                    validationPassed = false;
+                    break;
+                }
                 
                 const observations = block.querySelector('.exercise-obs-input').value.trim();
                 const sets = [];
                 const setRows = block.querySelectorAll('.set-rows-container > div');
                 for (const row of setRows) {
-                    sets.push({
-                        setType: row.querySelector('.set-type-input').value,
-                        reps: row.querySelector('.reps-input').value,
-                        rest: row.querySelector('.rest-input').value,
-                    });
+                    const setType = row.querySelector('.set-type-input').value;
+                    const reps = row.querySelector('.reps-input').value;
+                    const rest = row.querySelector('.rest-input').value;
+
+                    if (!setType || !reps || !rest) {
+                        routineErrorMessage.textContent = `Preencha todos os campos (Set, Reps, Descanso) para o exercício "${exerciseName}".`;
+                        validationPassed = false;
+                        break;
+                    }
+                    sets.push({ setType, reps, rest });
                 }
+
+                if (!validationPassed) break;
+
                 exercises.push({ name: exerciseName, observations, sets });
             }
 
-            if (exercises.length === 0) return alert('Adicione pelo menos um exercício à ficha.');
+            if (!validationPassed) return;
             
             const id = editingId || `r_${Date.now()}`;
             protocols[protocolId].routines[id] = { name, exercises };
@@ -836,13 +874,19 @@
             if (!routine) return;
 
             const finalWorkout = [];
+            let allSetsFilled = true;
             routine.exercises.forEach((ex, index) => {
                 const exerciseContainer = dailyExercisesContainer.children[index];
                 const setsData = [];
                 const setRows = exerciseContainer.querySelectorAll('.grid');
                 setRows.forEach((row, setIndex) => {
-                    const load = parseFloat(row.querySelector('.daily-load-input').value);
-                    const reps = parseInt(row.querySelector('.daily-reps-input').value);
+                    const loadInput = row.querySelector('.daily-load-input');
+                    const repsInput = row.querySelector('.daily-reps-input');
+                    const load = parseFloat(loadInput.value);
+                    const reps = parseInt(repsInput.value);
+                    if (loadInput.value.trim() === '' || repsInput.value.trim() === '') {
+                        allSetsFilled = false;
+                    }
                     if (!isNaN(load) && !isNaN(reps)) {
                         setsData.push({ 
                             load, 
@@ -856,7 +900,15 @@
                 }
             });
 
-            if (finalWorkout.length === 0) return alert("Preencha pelo menos uma série para salvar o treino.");
+            if (!allSetsFilled) {
+                workoutErrorMessage.textContent = "Preencha a carga e as repetições para todas as séries.";
+                return;
+            }
+
+            if (finalWorkout.length === 0) {
+                workoutErrorMessage.textContent = "Nenhum dado de treino preenchido.";
+                return;
+            }
 
             const historyEntry = { protocolId, routineId, exercises: finalWorkout };
             workoutHistory[date] = historyEntry;
@@ -882,8 +934,12 @@
             const exercise = cardioExerciseSelector.value;
             const time = parseInt(cardioTimeInput.value);
 
-            if (!date || !exercise || isNaN(time) || time <= 0) {
-                cardioErrorMessage.textContent = "Por favor, preencha todos os campos corretamente.";
+            if (!date) {
+                cardioErrorMessage.textContent = "Por favor, selecione uma data.";
+                return;
+            }
+            if (!exercise || isNaN(time) || time <= 0) {
+                cardioErrorMessage.textContent = "Preencha o exercício e o tempo corretamente.";
                 return;
             }
 
@@ -974,7 +1030,7 @@
         
         const handleSaveBodyMeasures = () => {
             const date = measureDateInput.value;
-            measureErrorMessage.textContent = ''; // Limpa a mensagem de erro
+            measureErrorMessage.textContent = '';
             if (!date) {
                 measureErrorMessage.textContent = "Por favor, selecione a data do preenchimento.";
                 return;
@@ -996,7 +1052,16 @@
                 coxaE: parseFloat(measureInputs.coxaE.value) || 0,
             };
             
+            // Validação para garantir que todos os campos foram preenchidos
+            for (const key in newMeasures) {
+                if (newMeasures[key] <= 0) {
+                    measureErrorMessage.textContent = `O campo '${key}' deve ser preenchido.`;
+                    return;
+                }
+            }
+
             newMeasures.imc = calculateIMC(newMeasures.peso, newMeasures.altura);
+            newMeasures.imcClassification = getIMCClassification(newMeasures.imc);
 
             bodyMeasuresHistory.push({ date, measures: newMeasures });
             saveState();
@@ -1016,12 +1081,23 @@
         const resetMeasuresForm = () => {
             Object.values(measureInputs).forEach(input => input.value = '');
             imcResult.textContent = '--';
+            imcClassification.textContent = '';
             measureDateInput.valueAsDate = new Date();
         };
 
         const calculateIMC = (weight, height) => {
             if (!weight || !height) return 0;
             return (weight / (height * height)).toFixed(2);
+        };
+        
+        const getIMCClassification = (imc) => {
+            if (imc < 18.5) return "Abaixo do peso";
+            if (imc >= 18.5 && imc < 25) return "Peso Normal";
+            if (imc >= 25 && imc < 30) return "Sobrepeso";
+            if (imc >= 30 && imc < 35) return "Obesidade grau I";
+            if (imc >= 35 && imc < 40) return "Obesidade grau II";
+            if (imc >= 40) return "Obesidade grau III";
+            return "";
         };
         
         const renderMeasuresComparison = () => {
@@ -1034,20 +1110,20 @@
             
             const headers = ['Medida', ...sortedHistory.map(entry => new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR'))];
             const measureLabels = {
-                altura: 'Altura (m)', peso: 'Peso (kg)', imc: 'IMC', peitoral: 'Peitoral (cm)', cintura: 'Cintura (cm)', gluteo: 'Glúteo (cm)',
+                altura: 'Altura (m)', peso: 'Peso (kg)', imc: 'IMC', imcClassification: 'Classificação IMC', peitoral: 'Peitoral (cm)', cintura: 'Cintura (cm)', gluteo: 'Glúteo (cm)',
                 bracoD: 'Braço Direito (cm)', bracoE: 'Braço Esquerdo (cm)', coxaD: 'Coxa Direita (cm)', coxaE: 'Coxa Esquerda (cm)'
             };
 
             let tableHTML = `<table class="w-full text-left text-gray-300">
                 <thead class="bg-gray-900/50 text-xs uppercase">
-                    <tr>${headers.map(h => `<th class="px-6 py-3">${h}</th>`).join('')}</tr>
+                    <tr>${headers.map(h => `<th class="px-6 py-3 text-center">${h}</th>`).join('').replace('text-center', 'text-left')}</tr>
                 </thead>
                 <tbody>`;
 
             Object.keys(measureLabels).forEach(key => {
                 tableHTML += `<tr class="border-b border-gray-700">
                     <td class="px-6 py-4 font-semibold">${measureLabels[key]}</td>
-                    ${sortedHistory.map(entry => `<td class="px-6 py-4">${entry.measures[key] || '--'}</td>`).join('')}
+                    ${sortedHistory.map(entry => `<td class="px-6 py-4 text-center">${entry.measures[key] || '--'}</td>`).join('')}
                 </tr>`;
             });
             
@@ -1403,7 +1479,9 @@
                 input.addEventListener('input', () => {
                     const weight = parseFloat(measureInputs.peso.value);
                     const height = parseFloat(measureInputs.altura.value);
-                    imcResult.textContent = calculateIMC(weight, height) || '--';
+                    const imc = calculateIMC(weight, height);
+                    imcResult.textContent = imc || '--';
+                    imcClassification.textContent = getIMCClassification(imc);
                 });
             });
 
@@ -1432,7 +1510,7 @@
             exportMeasuresPdfBtn.addEventListener('click', () => exportElementToPDF(measuresComparisonContent, 'comparativo_medidas.pdf'));
             exportMeasuresExcelBtn.addEventListener('click', () => {
                 const measureLabels = {
-                    altura: 'Altura (m)', peso: 'Peso (kg)', imc: 'IMC', peitoral: 'Peitoral (cm)', cintura: 'Cintura (cm)', gluteo: 'Glúteo (cm)',
+                    altura: 'Altura (m)', peso: 'Peso (kg)', imc: 'IMC', imcClassification: 'Classificação IMC', peitoral: 'Peitoral (cm)', cintura: 'Cintura (cm)', gluteo: 'Glúteo (cm)',
                     bracoD: 'Braço Direito (cm)', bracoE: 'Braço Esquerdo (cm)', coxaD: 'Coxa Direita (cm)', coxaE: 'Coxa Esquerda (cm)'
                 };
                 exportTableToExcel(bodyMeasuresHistory, measureLabels, 'comparativo_medidas.csv');
