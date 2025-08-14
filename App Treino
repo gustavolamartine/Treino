@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diário de Treino PRO v12</title>
+    <title>Diário de Treino v16</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,20 +12,73 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
 
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #111827; }
+        :root {
+            --bg-primary: #0D1117;
+            --bg-secondary: #161B22;
+            --border-color: #30363D;
+            --text-primary: #C9D1D9;
+            --text-secondary: #8B949E;
+            --accent-primary: #388BFD;
+            --accent-hover: #58A6FF;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-primary); 
+            color: var(--text-primary);
+        }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
-        .nav-btn { transition: all 0.2s ease-in-out; border-bottom: 3px solid transparent; }
-        .nav-btn.active { border-bottom-color: #14b8a6; color: white; }
+        
+        .nav-btn { 
+            transition: all 0.2s ease-in-out; 
+            border-bottom: 3px solid transparent; 
+            color: var(--text-secondary);
+        }
+        .nav-btn:hover {
+            color: var(--text-primary);
+        }
+        .nav-btn.active { 
+            border-bottom-color: var(--accent-primary); 
+            color: white; 
+            font-weight: 600;
+        }
         .page { display: none; animation: fadeIn 0.5s; }
         .page.active { display: block; }
-        select:disabled { background-color: #374151; cursor: not-allowed; }
+        
+        .card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .input-field {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.4);
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-primary);
+            color: white;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
         
         .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
         .collapsible-content.open { max-height: 1500px; }
@@ -33,78 +86,166 @@
         .fa-chevron-down { transition: transform 0.3s ease-out; }
         .open .fa-chevron-down { transform: rotate(180deg); }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-gray-200">
 
     <div class="container mx-auto p-4 md:p-6 max-w-7xl">
         
-        <header class="text-center mb-6">
-            <h1 class="text-4xl font-bold text-white">Diário de Treino PRO</h1>
-            <p class="text-gray-400 mt-2">Organize seus Protocolos, execute os treinos e analise sua evolução.</p>
+        <header class="text-center mb-8 flex justify-center items-center gap-4">
+            <i class="fas fa-dumbbell text-3xl md:text-4xl text-blue-400"></i>
+            <div>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white">Diário de Treino</h1>
+                <p class="text-lg text-gray-400 mt-2">Organize seus Protocolos, execute os treinos e analise sua evolução.</p>
+                <p class="text-sm text-gray-500 mt-1">Aplicativo elaborado por Gustavo Lamartine</p>
+            </div>
         </header>
 
         <!-- Navegação Principal -->
-        <nav class="flex flex-wrap justify-center border-b border-gray-700 mb-6">
-            <button data-page="protocols" class="nav-btn active flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Protocolos e Fichas</button>
-            <button data-page="daily-workout" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Treino do Dia</button>
-            <button data-page="history" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Histórico - Treino</button>
-            <button data-page="dashboard" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Dashboard - Treino</button>
-            <button data-page="cardio" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Cardio</button>
-            <button data-page="cardio-history" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold text-gray-400">Histórico - Cardio</button>
+        <nav class="flex flex-wrap justify-center border-b border-gray-700 mb-8">
+            <button data-page="body-measures" class="nav-btn active flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-ruler-combined mr-2"></i>Medidas Corporais</button>
+            <button data-page="measures-comparison" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-table mr-2"></i>Comparativo de Medidas</button>
+            <button data-page="protocols" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-sitemap mr-2"></i>Protocolos e Fichas</button>
+            <button data-page="daily-workout" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-dumbbell mr-2"></i>Treino do Dia</button>
+            <button data-page="history" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-history mr-2"></i>Histórico - Treino</button>
+            <button data-page="dashboard" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-chart-line mr-2"></i>Dashboard - Treino</button>
+            <button data-page="cardio" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-heart-pulse mr-2"></i>Cardio</button>
+            <button data-page="cardio-history" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-file-medical mr-2"></i>Histórico - Cardio</button>
+            <button data-page="data-management" class="nav-btn flex-1 md:flex-none py-3 px-4 font-semibold"><i class="fas fa-database mr-2"></i>Dados</button>
         </nav>
 
         <!-- Conteúdo das Páginas -->
-        <main>
-            <!-- PÁGINA 1: PROTOCOLOS E FICHAS -->
-            <div id="protocols" class="page active">
+        <main class="pb-16">
+            <!-- PÁGINA 1: MEDIDAS CORPORAIS -->
+            <div id="body-measures" class="page active">
+                <div class="card p-6 max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-4 text-white text-center">Registrar Medidas Corporais</h2>
+                    <p class="text-center font-bold text-blue-400 text-sm mb-6 bg-blue-900/50 p-2 rounded-md">O preenchimento deve ser realizado em jejum.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="measure-date" class="block text-sm font-medium text-gray-400 mb-1">Data de Preenchimento</label>
+                            <input type="date" id="measure-date" class="input-field w-full rounded-md p-2">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="measure-altura" class="block text-sm font-medium text-gray-400 mb-1">Altura (m)</label>
+                                <input type="number" id="measure-altura" placeholder="Ex: 1.75" class="input-field w-full rounded-md p-2">
+                            </div>
+                             <div>
+                                <label for="measure-peso" class="block text-sm font-medium text-gray-400 mb-1">Peso (kg)</label>
+                                <input type="number" id="measure-peso" placeholder="Ex: 78.5" class="input-field w-full rounded-md p-2">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="measure-peitoral" class="block text-sm font-medium text-gray-400 mb-1">Peitoral (cm)</label>
+                                <input type="number" id="measure-peitoral" class="input-field w-full rounded-md p-2">
+                            </div>
+                            <div>
+                                <label for="measure-cintura" class="block text-sm font-medium text-gray-400 mb-1">Cintura (cm)</label>
+                                <input type="number" id="measure-cintura" class="input-field w-full rounded-md p-2">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="measure-braco-d" class="block text-sm font-medium text-gray-400 mb-1">Braço Direito (cm)</label>
+                                <input type="number" id="measure-braco-d" class="input-field w-full rounded-md p-2">
+                            </div>
+                            <div>
+                                <label for="measure-braco-e" class="block text-sm font-medium text-gray-400 mb-1">Braço Esquerdo (cm)</label>
+                                <input type="number" id="measure-braco-e" class="input-field w-full rounded-md p-2">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="measure-coxa-d" class="block text-sm font-medium text-gray-400 mb-1">Coxa Direita (cm)</label>
+                                <input type="number" id="measure-coxa-d" class="input-field w-full rounded-md p-2">
+                            </div>
+                            <div>
+                                <label for="measure-coxa-e" class="block text-sm font-medium text-gray-400 mb-1">Coxa Esquerda (cm)</label>
+                                <input type="number" id="measure-coxa-e" class="input-field w-full rounded-md p-2">
+                            </div>
+                        </div>
+                         <div>
+                            <label for="measure-gluteo" class="block text-sm font-medium text-gray-400 mb-1">Glúteo (cm)</label>
+                            <input type="number" id="measure-gluteo" class="input-field w-full rounded-md p-2">
+                        </div>
+                        <div class="pt-4 border-t border-gray-700 text-center">
+                            <label class="block text-sm font-medium text-gray-400 mb-1">IMC Calculado</label>
+                            <span id="imc-result" class="text-2xl font-bold text-blue-400">--</span>
+                        </div>
+                        <button id="save-measures-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md"><i class="fas fa-save mr-2"></i>Salvar Medidas</button>
+                        <p id="measure-error-message" class="text-red-500 text-sm text-center mt-2 h-4"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PÁGINA 2: COMPARATIVO DE MEDIDAS -->
+            <div id="measures-comparison" class="page">
+                 <div class="card p-6" id="measures-comparison-content">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <h2 class="text-3xl font-bold text-white">Comparativo de Medidas</h2>
+                        <div class="flex gap-2">
+                            <button id="export-measures-pdf" class="btn-primary py-2 px-4 rounded-md text-sm"><i class="fas fa-file-pdf mr-2"></i>Exportar PDF</button>
+                            <button id="export-measures-excel" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm"><i class="fas fa-file-excel mr-2"></i>Exportar Excel</button>
+                        </div>
+                    </div>
+                    <div id="measures-comparison-container" class="overflow-x-auto"></div>
+                 </div>
+            </div>
+
+            <!-- PÁGINA 3: PROTOCOLOS E FICHAS -->
+            <div id="protocols" class="page">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Gerenciar Protocolos</h2>
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold mb-4 text-white">Gerenciar Protocolos</h2>
                         <div class="flex gap-4 mb-4">
-                            <input type="text" id="new-protocol-name" placeholder="Nome do Novo Protocolo" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
-                            <button id="add-protocol-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md">Criar</button>
+                            <input type="text" id="new-protocol-name" placeholder="Nome do Novo Protocolo" class="input-field w-full rounded-md p-2">
+                            <button id="add-protocol-btn" class="btn-primary py-2 px-4 rounded-md"><i class="fas fa-plus"></i></button>
                         </div>
                         <div id="protocol-list-container"></div>
                     </div>
-                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Gerenciar Exercícios</h2>
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold mb-4 text-white">Gerenciar Exercícios</h2>
                         <div class="flex gap-4 mb-4">
-                            <input type="text" id="new-exercise-name" placeholder="Nome do Novo Exercício" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
-                            <button id="add-exercise-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md">Criar</button>
+                            <input type="text" id="new-exercise-name" placeholder="Nome do Novo Exercício" class="input-field w-full rounded-md p-2">
+                            <button id="add-exercise-btn" class="btn-primary py-2 px-4 rounded-md"><i class="fas fa-plus"></i></button>
                         </div>
                         <div id="exercise-list-container"></div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <h2 id="routine-form-title" class="text-2xl font-semibold mb-4 text-white">Criar/Editar Ficha</h2>
+                    <div class="card p-6">
+                        <h2 id="routine-form-title" class="text-2xl font-bold mb-4 text-white">Criar/Editar Ficha</h2>
                         <div class="space-y-4">
                              <div>
-                                <label for="protocol-selector-form" class="block text-sm font-medium text-gray-300 mb-1">Selecione o Protocolo</label>
-                                <select id="protocol-selector-form" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                                <label for="protocol-selector-form" class="block text-sm font-medium text-gray-400 mb-1">Selecione o Protocolo</label>
+                                <select id="protocol-selector-form" class="input-field w-full rounded-md p-2"></select>
                             </div>
                             <input type="hidden" id="editing-routine-id">
                             <div>
-                                <label for="routine-name" class="block text-sm font-medium text-gray-300 mb-1">Nome da Ficha</label>
-                                <input type="text" id="routine-name" placeholder="Ex: Treino A - Peito e Tríceps" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                                <label for="routine-name" class="block text-sm font-medium text-gray-400 mb-1">Nome da Ficha</label>
+                                <input type="text" id="routine-name" placeholder="Ex: Treino A - Peito e Tríceps" class="input-field w-full rounded-md p-2">
                             </div>
                             
-                            <div id="routine-exercises-builder" class="space-y-4 bg-gray-900 p-4 rounded-md"></div>
+                            <div id="routine-exercises-builder" class="space-y-4 bg-gray-900/50 p-4 rounded-md"></div>
 
-                            <button id="add-exercise-to-routine-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Adicionar Exercício à Ficha</button>
+                            <button id="add-exercise-to-routine-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md"><i class="fas fa-plus-circle mr-2"></i>Adicionar Exercício à Ficha</button>
                             
-                            <button id="save-routine-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Salvar Ficha</button>
+                            <button id="save-routine-btn" class="btn-primary w-full py-2 px-4 rounded-md">Salvar Ficha</button>
                             <button id="cancel-edit-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md hidden">Cancelar Edição</button>
                         </div>
                     </div>
-                    <div id="protocol-details-container" class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Fichas do Protocolo</h2>
+                    <div class="card p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                            <h2 class="text-2xl font-bold text-white">Fichas do Protocolo</h2>
+                            <button id="export-routines-pdf" class="btn-primary py-2 px-4 rounded-md text-sm"><i class="fas fa-file-pdf mr-2"></i>Exportar Fichas</button>
+                        </div>
                         <div class="mb-4">
-                            <label for="protocol-filter-selector" class="block text-sm font-medium text-gray-300 mb-1">Filtrar por Protocolo</label>
-                            <select id="protocol-filter-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                            <label for="protocol-filter-selector" class="block text-sm font-medium text-gray-400 mb-1">Filtrar por Protocolo</label>
+                            <select id="protocol-filter-selector" class="input-field w-full rounded-md p-2"></select>
                         </div>
                         <div id="saved-routines-container" class="space-y-4">
                             <p class="text-gray-400">Selecione um protocolo para ver suas fichas.</p>
@@ -113,67 +254,71 @@
                 </div>
             </div>
 
-            <!-- PÁGINA 2: TREINO DO DIA -->
+            <!-- PÁGINA 4: TREINO DO DIA -->
             <div id="daily-workout" class="page">
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-semibold mb-4 text-white">Registre o Treino de Hoje</h2>
+                <div class="card p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-white">Registre o Treino de Hoje</h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
-                            <label for="daily-protocol-selector" class="block text-sm font-medium text-gray-300 mb-1">1. Protocolo</label>
-                            <select id="daily-protocol-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:ring-2 focus:ring-teal-500"></select>
+                            <label for="daily-protocol-selector" class="block text-sm font-medium text-gray-400 mb-1">1. Protocolo</label>
+                            <select id="daily-protocol-selector" class="input-field w-full rounded-md p-2"></select>
                         </div>
                         <div>
-                            <label for="daily-routine-selector" class="block text-sm font-medium text-gray-300 mb-1">2. Ficha</label>
-                            <select id="daily-routine-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:ring-2 focus:ring-teal-500" disabled></select>
+                            <label for="daily-routine-selector" class="block text-sm font-medium text-gray-400 mb-1">2. Ficha</label>
+                            <select id="daily-routine-selector" class="input-field w-full rounded-md p-2" disabled></select>
                         </div>
                          <div>
-                            <label for="workout-date" class="block text-sm font-medium text-gray-300 mb-1">3. Data do Treino</label>
-                            <input type="date" id="workout-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            <label for="workout-date" class="block text-sm font-medium text-gray-400 mb-1">3. Data do Treino</label>
+                            <input type="date" id="workout-date" class="input-field w-full rounded-md p-2">
                         </div>
                     </div>
                     <div id="daily-exercises-container" class="space-y-6 mt-6">
                         <p class="text-gray-400 text-center">Selecione um protocolo e uma ficha para começar.</p>
                     </div>
-                    <button id="save-workout-btn" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow-lg transition-transform transform hover:scale-101 disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
-                        Salvar Treino do Dia
+                    <button id="save-workout-btn" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow-lg disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
+                        <i class="fas fa-save mr-2"></i>Salvar Treino do Dia
                     </button>
+                    <p id="workout-error-message" class="text-red-500 text-sm text-center mt-2 h-4"></p>
                 </div>
             </div>
             
-            <!-- PÁGINA 3: HISTÓRICO - TREINO -->
+            <!-- PÁGINA 5: HISTÓRICO - TREINO -->
             <div id="history" class="page">
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <div class="flex justify-between items-center mb-6">
+                <div class="card p-6">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                         <h2 class="text-3xl font-bold text-white">Histórico - Treino</h2>
-                        <button id="export-history-pdf" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Exportar para PDF</button>
+                        <div class="flex gap-2">
+                            <button id="export-history-pdf" class="btn-primary py-2 px-4 rounded-md text-sm"><i class="fas fa-file-pdf mr-2"></i>Exportar PDF</button>
+                            <button id="export-history-excel" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm"><i class="fas fa-file-excel mr-2"></i>Exportar Excel</button>
+                        </div>
                     </div>
                     <div id="history-container" class="space-y-6"></div>
                 </div>
             </div>
 
-            <!-- PÁGINA 4: DASHBOARD - TREINO -->
+            <!-- PÁGINA 6: DASHBOARD - TREINO -->
             <div id="dashboard" class="page">
-                 <div class="bg-gray-800 p-6 rounded-lg shadow-lg" id="dashboard-content">
+                 <div class="card p-6" id="dashboard-content">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-3xl font-bold text-white">Dashboard - Treino</h2>
-                        <button id="export-dashboard-pdf" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Exportar para PDF</button>
+                        <button id="export-dashboard-pdf" class="btn-primary py-2 px-4 rounded-md"><i class="fas fa-file-pdf mr-2"></i>Exportar</button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-gray-900 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-gray-900/50 rounded-lg">
                         <div>
-                            <label for="dash-protocol-selector" class="block text-sm font-medium text-gray-300 mb-1">Filtrar Protocolo</label>
-                            <select id="dash-protocol-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                            <label for="dash-protocol-selector" class="block text-sm font-medium text-gray-400 mb-1">Filtrar Protocolo</label>
+                            <select id="dash-protocol-selector" class="input-field w-full rounded-md p-2"></select>
                         </div>
                         <div>
-                            <label for="dash-routine-selector" class="block text-sm font-medium text-gray-300 mb-1">Filtrar Ficha</label>
-                            <select id="dash-routine-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" disabled></select>
+                            <label for="dash-routine-selector" class="block text-sm font-medium text-gray-400 mb-1">Filtrar Ficha</label>
+                            <select id="dash-routine-selector" class="input-field w-full rounded-md p-2" disabled></select>
                         </div>
                         <div>
-                            <label for="dash-exercise-selector" class="block text-sm font-medium text-gray-300 mb-1">Exercício</label>
-                            <select id="dash-exercise-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white"></select>
+                            <label for="dash-exercise-selector" class="block text-sm font-medium text-gray-400 mb-1">Exercício</label>
+                            <select id="dash-exercise-selector" class="input-field w-full rounded-md p-2"></select>
                         </div>
                         <div>
-                            <label for="dash-set-type-selector" class="block text-sm font-medium text-gray-300 mb-1">Tipo de Set</label>
-                            <select id="dash-set-type-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" disabled></select>
+                            <label for="dash-set-type-selector" class="block text-sm font-medium text-gray-400 mb-1">Tipo de Set</label>
+                            <select id="dash-set-type-selector" class="input-field w-full rounded-md p-2" disabled></select>
                         </div>
                     </div>
                      <div id="chart-type-container" class="flex justify-center gap-4 mb-6">
@@ -186,56 +331,90 @@
                  </div>
             </div>
             
-            <!-- PÁGINA 5: CARDIO -->
+            <!-- PÁGINA 7: CARDIO -->
             <div id="cardio" class="page">
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg mx-auto">
-                    <h2 class="text-2xl font-semibold mb-4 text-white text-center">Registrar Exercício Cardio</h2>
-                    <p class="text-center text-gray-400 text-sm mb-6">Caso faça mais de um exercício cardiovascular no dia, registrar apenas o tempo total.</p>
+                <div class="card p-6 max-w-lg mx-auto">
+                    <h2 class="text-2xl font-bold mb-4 text-white text-center">Registrar Exercício Cardio</h2>
+                    <p class="text-center text-gray-400 text-sm mb-6">Caso faça mais de um exercício cardiovascular no dia, registre apenas o tempo total.</p>
                     <div class="space-y-4">
                         <div>
-                            <label for="cardio-date" class="block text-sm font-medium text-gray-300 mb-1">Data</label>
-                            <input type="date" id="cardio-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            <label for="cardio-date" class="block text-sm font-medium text-gray-400 mb-1">Data</label>
+                            <input type="date" id="cardio-date" class="input-field w-full rounded-md p-2">
                         </div>
                         <div>
-                            <label for="cardio-exercise-selector" class="block text-sm font-medium text-gray-300 mb-1">Exercício</label>
-                            <select id="cardio-exercise-selector" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            <label for="cardio-exercise-selector" class="block text-sm font-medium text-gray-400 mb-1">Exercício</label>
+                            <select id="cardio-exercise-selector" class="input-field w-full rounded-md p-2">
                                 <option>Esteira</option>
                                 <option>Elíptico</option>
                                 <option>Bicicleta</option>
                                 <option>Escada</option>
+                                <option>Corrida na Rua</option>
+                                <option>Bicicleta Ergométrica</option>
                             </select>
                         </div>
                         <div>
-                            <label for="cardio-time" class="block text-sm font-medium text-gray-300 mb-1">Tempo (em minutos)</label>
-                            <input type="number" id="cardio-time" placeholder="Ex: 30" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                            <label for="cardio-time" class="block text-sm font-medium text-gray-400 mb-1">Tempo (em minutos)</label>
+                            <input type="number" id="cardio-time" placeholder="Ex: 30" class="input-field w-full rounded-md p-2">
                         </div>
-                        <button id="save-cardio-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md">Salvar Cardio</button>
+                        <button id="save-cardio-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md"><i class="fas fa-save mr-2"></i>Salvar Cardio</button>
+                        <p id="cardio-error-message" class="text-red-500 text-sm text-center mt-2 h-4"></p>
                     </div>
                 </div>
             </div>
 
-            <!-- PÁGINA 6: HISTÓRICO - CARDIO -->
+            <!-- PÁGINA 8: HISTÓRICO - CARDIO -->
             <div id="cardio-history" class="page">
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg" id="cardio-history-content">
-                    <div class="flex justify-between items-center mb-6">
+                <div class="card p-6" id="cardio-history-content">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                         <h2 class="text-3xl font-bold text-white">Histórico - Cardio</h2>
-                        <button id="export-cardio-history-pdf" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Exportar para PDF</button>
+                        <div class="flex gap-2">
+                           <button id="export-cardio-history-pdf" class="btn-primary py-2 px-4 rounded-md text-sm"><i class="fas fa-file-pdf mr-2"></i>Exportar PDF</button>
+                           <button id="export-cardio-history-excel" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm"><i class="fas fa-file-excel mr-2"></i>Exportar Excel</button>
+                        </div>
                     </div>
                     <div class="mb-4 max-w-sm mx-auto">
-                        <label for="cardio-history-filter" class="block text-sm font-medium text-gray-300 mb-1">Filtrar por Exercício</label>
-                        <select id="cardio-history-filter" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white">
+                        <label for="cardio-history-filter" class="block text-sm font-medium text-gray-400 mb-1">Filtrar por Exercício</label>
+                        <select id="cardio-history-filter" class="input-field w-full rounded-md p-2">
                             <option value="Todos">Todos</option>
                             <option>Esteira</option>
                             <option>Elíptico</option>
                             <option>Bicicleta</option>
                             <option>Escada</option>
+                            <option>Corrida na Rua</option>
+                            <option>Bicicleta Ergométrica</option>
                         </select>
                     </div>
                     <div id="cardio-history-container" class="overflow-x-auto"></div>
                 </div>
             </div>
+
+            <!-- PÁGINA 9: DADOS -->
+            <div id="data-management" class="page">
+                <div class="card p-6 max-w-2xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-bold text-white text-center">Gerenciamento de Dados</h2>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Exportar Dados</h3>
+                        <p class="text-gray-400 mb-4">Clique no botão abaixo para salvar um arquivo de backup com todos os seus dados (protocolos, exercícios, históricos, etc.). Guarde este arquivo em um local seguro.</p>
+                        <button id="export-data-btn" class="btn-primary w-full py-2 px-4 rounded-md"><i class="fas fa-download mr-2"></i>Extrair toda a base de dados</button>
+                    </div>
+                    <div class="border-t border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold mb-2">Importar Dados</h3>
+                        <p class="text-gray-400 mb-4">Selecione o arquivo de backup (.json) que você exportou anteriormente. Isso substituirá TODOS os dados atuais no aplicativo.</p>
+                        <label for="import-data-input" class="w-full text-center cursor-pointer bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md inline-block"><i class="fas fa-upload mr-2"></i>Importar base de dados</label>
+                        <input type="file" id="import-data-input" class="hidden" accept=".json">
+                        <p class="text-red-500 text-xs text-center mt-2 font-bold">AVISO: A importação irá apagar todos os dados existentes neste dispositivo.</p>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
+
+    <footer class="text-center py-6 border-t border-gray-800">
+        <div class="flex justify-center items-center gap-2 text-gray-500">
+            <i class="fab fa-instagram"></i>
+            <a href="https://instagram.com/guslmt" target="_blank" class="hover:text-blue-400 transition-colors">@guslmt</a>
+        </div>
+    </footer>
     
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -252,10 +431,11 @@
         };
 
         // --- ESTADO DA APLICAÇÃO ---
-        let protocols = JSON.parse(localStorage.getItem('workoutProtocols_v12')) || {};
-        let exerciseDatabase = JSON.parse(localStorage.getItem('workoutExercises_v12')) || [];
-        let workoutHistory = JSON.parse(localStorage.getItem('workoutHistory_v12')) || {};
-        let cardioHistory = JSON.parse(localStorage.getItem('workoutCardioHistory_v12')) || [];
+        let protocols = JSON.parse(localStorage.getItem('workoutProtocols_v13')) || {};
+        let exerciseDatabase = JSON.parse(localStorage.getItem('workoutExercises_v13')) || [];
+        let workoutHistory = JSON.parse(localStorage.getItem('workoutHistory_v13')) || {};
+        let cardioHistory = JSON.parse(localStorage.getItem('workoutCardioHistory_v13')) || [];
+        let bodyMeasuresHistory = JSON.parse(localStorage.getItem('bodyMeasuresHistory_v13')) || [];
         let dashboardChartInstance = null;
 
         // --- ELEMENTOS DA DOM ---
@@ -280,25 +460,30 @@
         const savedRoutinesContainer = document.getElementById('saved-routines-container');
         const editingRoutineIdInput = document.getElementById('editing-routine-id');
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const exportRoutinesPdfBtn = document.getElementById('export-routines-pdf');
 
         const dailyProtocolSelector = document.getElementById('daily-protocol-selector');
         const dailyRoutineSelector = document.getElementById('daily-routine-selector');
         const workoutDateInput = document.getElementById('workout-date');
         const dailyExercisesContainer = document.getElementById('daily-exercises-container');
         const saveWorkoutBtn = document.getElementById('save-workout-btn');
+        const workoutErrorMessage = document.getElementById('workout-error-message');
 
         const cardioDateInput = document.getElementById('cardio-date');
         const cardioExerciseSelector = document.getElementById('cardio-exercise-selector');
         const cardioTimeInput = document.getElementById('cardio-time');
         const saveCardioBtn = document.getElementById('save-cardio-btn');
+        const cardioErrorMessage = document.getElementById('cardio-error-message');
 
         const historyContainer = document.getElementById('history-container');
         const exportHistoryBtn = document.getElementById('export-history-pdf');
+        const exportHistoryExcelBtn = document.getElementById('export-history-excel');
         
         const cardioHistoryContent = document.getElementById('cardio-history-content');
         const cardioHistoryContainer = document.getElementById('cardio-history-container');
         const cardioHistoryFilter = document.getElementById('cardio-history-filter');
         const exportCardioHistoryBtn = document.getElementById('export-cardio-history-pdf');
+        const exportCardioHistoryExcelBtn = document.getElementById('export-cardio-history-excel');
 
         const dashboardContent = document.getElementById('dashboard-content');
         const dashProtocolSelector = document.getElementById('dash-protocol-selector');
@@ -311,6 +496,31 @@
         const chartTypeRadios = document.querySelectorAll('input[name="chart-type"]');
         const exportDashboardBtn = document.getElementById('export-dashboard-pdf');
 
+        // Medidas
+        const measuresComparisonContent = document.getElementById('measures-comparison-content');
+        const measureDateInput = document.getElementById('measure-date');
+        const saveMeasuresBtn = document.getElementById('save-measures-btn');
+        const imcResult = document.getElementById('imc-result');
+        const measuresComparisonContainer = document.getElementById('measures-comparison-container');
+        const measureErrorMessage = document.getElementById('measure-error-message');
+        const exportMeasuresPdfBtn = document.getElementById('export-measures-pdf');
+        const exportMeasuresExcelBtn = document.getElementById('export-measures-excel');
+        const measureInputs = {
+            altura: document.getElementById('measure-altura'),
+            peso: document.getElementById('measure-peso'),
+            peitoral: document.getElementById('measure-peitoral'),
+            cintura: document.getElementById('measure-cintura'),
+            gluteo: document.getElementById('measure-gluteo'),
+            bracoD: document.getElementById('measure-braco-d'),
+            bracoE: document.getElementById('measure-braco-e'),
+            coxaD: document.getElementById('measure-coxa-d'),
+            coxaE: document.getElementById('measure-coxa-e'),
+        };
+        
+        // Dados
+        const exportDataBtn = document.getElementById('export-data-btn');
+        const importDataInput = document.getElementById('import-data-input');
+        
         // --- FUNÇÕES DE LÓGICA E RENDERIZAÇÃO ---
 
         const switchPage = (pageId) => {
@@ -319,10 +529,11 @@
         };
 
         const saveState = () => {
-            localStorage.setItem('workoutProtocols_v12', JSON.stringify(protocols));
-            localStorage.setItem('workoutExercises_v12', JSON.stringify(exerciseDatabase));
-            localStorage.setItem('workoutHistory_v12', JSON.stringify(workoutHistory));
-            localStorage.setItem('workoutCardioHistory_v12', JSON.stringify(cardioHistory));
+            localStorage.setItem('workoutProtocols_v13', JSON.stringify(protocols));
+            localStorage.setItem('workoutExercises_v13', JSON.stringify(exerciseDatabase));
+            localStorage.setItem('workoutHistory_v13', JSON.stringify(workoutHistory));
+            localStorage.setItem('workoutCardioHistory_v13', JSON.stringify(cardioHistory));
+            localStorage.setItem('bodyMeasuresHistory_v13', JSON.stringify(bodyMeasuresHistory));
         };
 
         const populateProtocolSelectors = () => {
@@ -357,18 +568,18 @@
                 return;
             }
             const list = document.createElement('div');
-            list.className = 'bg-gray-700 rounded-lg';
+            list.className = 'bg-gray-900/50 rounded-lg';
             list.innerHTML = `
                 <button class="w-full flex justify-between items-center p-3 font-semibold text-white collapsible-toggle">
                     <span>${title}</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
-                <div class="collapsible-content p-3 border-t border-gray-600">
+                <div class="collapsible-content p-3 border-t border-gray-700">
                     <ul class="space-y-2">
                         ${items.map(item => `
-                            <li class="flex justify-between items-center text-sm">
+                            <li class="flex justify-between items-center text-sm p-2 rounded hover:bg-gray-700">
                                 <span>${isProtocolList ? item.name : item}</span>
-                                <button data-id="${isProtocolList ? item.id : item}" class="delete-btn text-red-500 hover:text-red-400 text-xs">Excluir</button>
+                                <button data-id="${isProtocolList ? item.id : item}" class="delete-btn text-red-500 hover:text-red-400 text-xs"><i class="fas fa-trash"></i></button>
                             </li>
                         `).join('')}
                     </ul>
@@ -452,10 +663,10 @@
             for (const id in routines) {
                 const routine = routines[id];
                 const accordion = document.createElement('div');
-                accordion.className = 'bg-gray-700 rounded-lg overflow-hidden';
+                accordion.className = 'bg-gray-900/50 rounded-lg overflow-hidden';
                 
                 let exercisesHTML = routine.exercises.map(ex => `
-                    <div class="mt-2 pt-2 border-t border-gray-600">
+                    <div class="mt-2 pt-2 border-t border-gray-700">
                         <p class="font-semibold text-white">${ex.name}</p>
                         <p class="text-xs text-gray-400 italic">Obs: ${ex.observations || 'Nenhuma'}</p>
                         <table class="w-full text-xs text-left mt-2">
@@ -472,11 +683,11 @@
                         <span>${routine.name}</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
-                    <div class="collapsible-content p-4 border-t border-gray-600">
+                    <div class="collapsible-content p-4 border-t border-gray-700">
                         ${exercisesHTML}
                         <div class="mt-4 flex gap-2">
-                            <button data-protocol-id="${protocolId}" data-routine-id="${id}" class="edit-routine-btn text-sm bg-blue-600 px-3 py-1 rounded">Editar</button>
-                            <button data-protocol-id="${protocolId}" data-routine-id="${id}" class="delete-routine-btn text-sm bg-red-600 px-3 py-1 rounded">Excluir</button>
+                            <button data-protocol-id="${protocolId}" data-routine-id="${id}" class="edit-routine-btn text-sm bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Editar</button>
+                            <button data-protocol-id="${protocolId}" data-routine-id="${id}" class="delete-routine-btn text-sm bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Excluir</button>
                         </div>
                     </div>
                 `;
@@ -496,21 +707,21 @@
                 const s = exData.sets[i] || {};
                 setRowsHTML += `
                     <div class="grid grid-cols-3 gap-2">
-                        <select class="set-type-input w-full bg-gray-600 p-1 rounded text-xs">${SET_TYPE_OPTIONS.map(o => `<option value="${o}" ${s.setType === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
-                        <select class="reps-input w-full bg-gray-600 p-1 rounded text-xs">${REPS_OPTIONS.map(o => `<option value="${o}" ${s.reps === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
-                        <select class="rest-input w-full bg-gray-600 p-1 rounded text-xs">${REST_OPTIONS.map(o => `<option value="${o}" ${s.rest === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                        <select class="set-type-input w-full input-field rounded text-xs p-1">${SET_TYPE_OPTIONS.map(o => `<option value="${o}" ${s.setType === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                        <select class="reps-input w-full input-field rounded text-xs p-1">${REPS_OPTIONS.map(o => `<option value="${o}" ${s.reps === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                        <select class="rest-input w-full input-field rounded text-xs p-1">${REST_OPTIONS.map(o => `<option value="${o}" ${s.rest === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
                     </div>`;
             }
 
             exerciseDiv.innerHTML = `
                 <div class="flex justify-between items-center">
-                    <select class="exercise-name-select w-full bg-gray-700 p-1 rounded text-white font-semibold"></select>
+                    <select class="exercise-name-select w-full input-field p-1 rounded text-white font-semibold"></select>
                     <button class="remove-exercise-btn text-red-500 ml-2 text-lg">&times;</button>
                 </div>
-                <textarea placeholder="Observações..." class="exercise-obs-input w-full bg-gray-700 p-1 rounded text-white text-sm">${exData.observations}</textarea>
+                <textarea placeholder="Observações..." class="exercise-obs-input w-full input-field p-1 rounded text-white text-sm">${exData.observations}</textarea>
                 <div>
                     <label class="text-xs text-gray-400">Número de Séries:</label>
-                    <select class="num-sets-select w-20 bg-gray-700 p-1 rounded text-white text-sm">
+                    <select class="num-sets-select w-20 input-field p-1 rounded text-white text-sm">
                         ${[1,2,3,4,5].map(n => `<option value="${n}" ${numSets === n ? 'selected' : ''}>${n}</option>`).join('')}
                     </select>
                 </div>
@@ -589,14 +800,14 @@
             saveWorkoutBtn.disabled = false;
             protocols[protocolId].routines[routineId].exercises.forEach(ex => {
                 const exerciseDiv = document.createElement('div');
-                exerciseDiv.className = 'bg-gray-700 p-4 rounded-lg';
+                exerciseDiv.className = 'bg-gray-900/50 p-4 rounded-lg';
                 
                 let setsHTML = ex.sets.map((s, i) => `
                     <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center text-sm p-2 bg-gray-800 rounded">
                         <div class="sm:col-span-2"><strong>Série ${i+1}:</strong> ${s.setType} (${s.reps})</div>
                         <div class="sm:col-span-1"><strong>Descanso:</strong> ${s.rest}</div>
-                        <input type="number" placeholder="Carga (kg)" class="daily-load-input w-full p-1 rounded bg-gray-600 text-white">
-                        <input type="number" placeholder="Reps Feitas" class="daily-reps-input w-full p-1 rounded bg-gray-600 text-white">
+                        <input type="number" placeholder="Carga (kg)" class="daily-load-input w-full input-field rounded p-1">
+                        <input type="number" placeholder="Reps Feitas" class="daily-reps-input w-full input-field rounded p-1">
                     </div>
                 `).join('');
 
@@ -611,10 +822,14 @@
 
         const handleSaveWorkout = () => {
             const date = workoutDateInput.value;
-            if (!date) return alert("Por favor, selecione a data do treino.");
+            workoutErrorMessage.textContent = '';
+            if (!date) {
+                workoutErrorMessage.textContent = "Por favor, selecione a data do treino.";
+                return;
+            }
 
             if (workoutHistory[date]) {
-                alert('Já existe um treino registrado para esta data. Não é possível salvar outro.');
+                workoutErrorMessage.textContent = "Treino já registrado para essa data.";
                 return;
             }
 
@@ -658,17 +873,18 @@
         
         const handleSaveCardio = () => {
             const date = cardioDateInput.value;
+            cardioErrorMessage.textContent = '';
             const exercise = cardioExerciseSelector.value;
             const time = parseInt(cardioTimeInput.value);
 
             if (!date || !exercise || isNaN(time) || time <= 0) {
-                alert("Por favor, preencha todos os campos corretamente.");
+                cardioErrorMessage.textContent = "Por favor, preencha todos os campos corretamente.";
                 return;
             }
 
             const existingEntryIndex = cardioHistory.findIndex(entry => entry.date === date);
             if (existingEntryIndex !== -1) {
-                alert("Já existe um registro de cardio para esta data. Conforme a instrução, some os tempos e edite o registro existente (funcionalidade futura) ou remova o antigo.");
+                cardioErrorMessage.textContent = "Exercício Cardiovascular já registrado para essa data.";
                 return;
             }
 
@@ -689,14 +905,14 @@
                 const routineName = protocols[entry.protocolId]?.routines[entry.routineId]?.name || 'Ficha Deletada';
 
                 const historyCard = document.createElement('div');
-                historyCard.className = 'bg-gray-700 p-5 rounded-lg shadow-lg';
+                historyCard.className = 'card p-5';
                 historyCard.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-xl font-bold text-teal-400">${new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</h3>
+                        <h3 class="text-xl font-bold text-blue-400">${new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</h3>
                     </div>
                     <p class="text-md text-gray-300 mb-4"><strong>Protocolo:</strong> ${protocolName} / <strong>Ficha:</strong> ${routineName}</p>
                     <div class="space-y-2">${entry.exercises.map(ex => `
-                        <div class="py-2 border-t border-gray-600">
+                        <div class="py-2 border-t border-gray-700">
                             <span class="font-medium text-white">${ex.name}</span>
                             <ul class="text-sm text-gray-400 mt-1 pl-4">${ex.sets.map((s, i) => `<li>Série ${i+1} (${s.setType}): ${s.load} kg x ${s.reps} reps</li>`).join('')}</ul>
                         </div>`).join('')}
@@ -718,7 +934,7 @@
             
             cardioHistoryContainer.innerHTML = `
                 <table class="w-full text-left text-gray-300">
-                    <thead class="bg-gray-700 text-xs uppercase">
+                    <thead class="bg-gray-900/50 text-xs uppercase">
                         <tr>
                             <th class="px-6 py-3">Data</th>
                             <th class="px-6 py-3">Exercício</th>
@@ -736,6 +952,164 @@
                     </tbody>
                 </table>
             `;
+        };
+        
+        const handleSaveBodyMeasures = () => {
+            const date = measureDateInput.value;
+            measureErrorMessage.textContent = ''; // Limpa a mensagem de erro
+            if (!date) {
+                measureErrorMessage.textContent = "Por favor, selecione a data do preenchimento.";
+                return;
+            }
+            if (bodyMeasuresHistory.some(entry => entry.date === date)) {
+                measureErrorMessage.textContent = "Medidas já informadas para essa data.";
+                return;
+            }
+            
+            const newMeasures = {
+                altura: parseFloat(measureInputs.altura.value) || 0,
+                peso: parseFloat(measureInputs.peso.value) || 0,
+                peitoral: parseFloat(measureInputs.peitoral.value) || 0,
+                cintura: parseFloat(measureInputs.cintura.value) || 0,
+                gluteo: parseFloat(measureInputs.gluteo.value) || 0,
+                bracoD: parseFloat(measureInputs.bracoD.value) || 0,
+                bracoE: parseFloat(measureInputs.bracoE.value) || 0,
+                coxaD: parseFloat(measureInputs.coxaD.value) || 0,
+                coxaE: parseFloat(measureInputs.coxaE.value) || 0,
+            };
+            
+            newMeasures.imc = calculateIMC(newMeasures.peso, newMeasures.altura);
+
+            bodyMeasuresHistory.push({ date, measures: newMeasures });
+            saveState();
+            renderMeasuresComparison();
+            alert("Medidas salvas com sucesso!");
+            resetMeasuresForm();
+        };
+        
+        const resetMeasuresForm = () => {
+            Object.values(measureInputs).forEach(input => input.value = '');
+            imcResult.textContent = '--';
+            measureDateInput.valueAsDate = new Date();
+        };
+
+        const calculateIMC = (weight, height) => {
+            if (!weight || !height) return 0;
+            return (weight / (height * height)).toFixed(2);
+        };
+        
+        const renderMeasuresComparison = () => {
+            if (bodyMeasuresHistory.length === 0) {
+                measuresComparisonContainer.innerHTML = '<p class="text-center text-gray-400">Nenhum registro de medidas encontrado.</p>';
+                return;
+            }
+
+            const sortedHistory = bodyMeasuresHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const headers = ['Medida', ...sortedHistory.map(entry => new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR'))];
+            const measureLabels = {
+                altura: 'Altura (m)', peso: 'Peso (kg)', imc: 'IMC', peitoral: 'Peitoral (cm)', cintura: 'Cintura (cm)', gluteo: 'Glúteo (cm)',
+                bracoD: 'Braço Direito (cm)', bracoE: 'Braço Esquerdo (cm)', coxaD: 'Coxa Direita (cm)', coxaE: 'Coxa Esquerda (cm)'
+            };
+
+            let tableHTML = `<table class="w-full text-left text-gray-300">
+                <thead class="bg-gray-900/50 text-xs uppercase">
+                    <tr>${headers.map(h => `<th class="px-6 py-3">${h}</th>`).join('')}</tr>
+                </thead>
+                <tbody>`;
+
+            Object.keys(measureLabels).forEach(key => {
+                tableHTML += `<tr class="border-b border-gray-700">
+                    <td class="px-6 py-4 font-semibold">${measureLabels[key]}</td>
+                    ${sortedHistory.map(entry => `<td class="px-6 py-4">${entry.measures[key] || '--'}</td>`).join('')}
+                </tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            measuresComparisonContainer.innerHTML = tableHTML;
+        };
+        
+        const exportTableToExcel = (history, labels, filename) => {
+            if (history.length === 0) return;
+
+            const sortedHistory = history.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const headers = ['Medida', ...sortedHistory.map(entry => new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR'))];
+            
+            let csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + '\n';
+            
+            Object.keys(labels).forEach(key => {
+                const row = [labels[key], ...sortedHistory.map(entry => entry.measures[key] || '')];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+        
+        const exportHistoryToExcel = () => {
+            if (Object.keys(workoutHistory).length === 0) return;
+
+            let csvContent = "data:text/csv;charset=utf-8,Data,Protocolo,Ficha,Exercício,Série,Tipo de Set,Carga (kg),Repetições\n";
+            const sortedDates = Object.keys(workoutHistory).sort((a, b) => new Date(a) - new Date(b));
+
+            sortedDates.forEach(date => {
+                const entry = workoutHistory[date];
+                const protocolName = (protocols[entry.protocolId]?.name || 'N/A').replace(/,/g, '');
+                const routineName = (protocols[entry.protocolId]?.routines[entry.routineId]?.name || 'N/A').replace(/,/g, '');
+                
+                entry.exercises.forEach(ex => {
+                    ex.sets.forEach((set, index) => {
+                        const row = [
+                            new Date(date + 'T00:00:00').toLocaleDateString('pt-BR'),
+                            protocolName,
+                            routineName,
+                            ex.name.replace(/,/g, ''),
+                            index + 1,
+                            set.setType,
+                            set.load,
+                            set.reps
+                        ].join(',');
+                        csvContent += row + '\n';
+                    });
+                });
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "historico_treino.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+        
+        const exportCardioHistoryToExcel = () => {
+            if (cardioHistory.length === 0) return;
+
+            let csvContent = "data:text/csv;charset=utf-8,Data,Exercício,Tempo (min)\n";
+            const sorted = [...cardioHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            sorted.forEach(entry => {
+                const row = [
+                    new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR'),
+                    entry.exercise,
+                    entry.time
+                ].join(',');
+                csvContent += row + '\n';
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "historico_cardio.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         };
 
         const updateDashboard = () => {
@@ -877,7 +1251,7 @@
 
             html2canvas(element, { 
                 scale: 2, 
-                backgroundColor: '#111827',
+                backgroundColor: '#161B22',
                 onclone: (document) => {
                     document.querySelectorAll('.collapsible-content').forEach(el => el.classList.add('open'));
                 }
@@ -903,7 +1277,7 @@
                 pdf.save(filename);
             });
         };
-
+        
         // --- EVENT LISTENERS ---
         const setupEventListeners = () => {
             navButtons.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.page)));
@@ -919,12 +1293,8 @@
                 }
                 if (e.target.classList.contains('delete-btn')) {
                     const id = e.target.dataset.id;
-                    if (e.target.closest('#protocol-list-container')) {
-                        handleDeleteProtocol(id);
-                    }
-                    if (e.target.closest('#exercise-list-container')) {
-                        handleDeleteExercise(id);
-                    }
+                    if (e.target.closest('#protocol-list-container')) handleDeleteProtocol(id);
+                    if (e.target.closest('#exercise-list-container')) handleDeleteExercise(id);
                 }
             });
 
@@ -945,9 +1315,9 @@
                     for (let i = 0; i < numSets; i++) {
                         newRowsHTML += `
                         <div class="grid grid-cols-3 gap-2">
-                            <select class="set-type-input w-full bg-gray-600 p-1 rounded text-xs">${SET_TYPE_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
-                            <select class="reps-input w-full bg-gray-600 p-1 rounded text-xs">${REPS_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
-                            <select class="rest-input w-full bg-gray-600 p-1 rounded text-xs">${REST_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
+                            <select class="set-type-input w-full input-field rounded text-xs p-1">${SET_TYPE_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
+                            <select class="reps-input w-full input-field rounded text-xs p-1">${REPS_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
+                            <select class="rest-input w-full input-field rounded text-xs p-1">${REST_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('')}</select>
                         </div>`;
                     }
                     container.innerHTML = newRowsHTML;
@@ -993,6 +1363,16 @@
             saveCardioBtn.addEventListener('click', handleSaveCardio);
             cardioHistoryFilter.addEventListener('change', renderCardioHistory);
 
+            // Medidas Listeners
+            saveMeasuresBtn.addEventListener('click', handleSaveBodyMeasures);
+            [measureInputs.altura, measureInputs.peso].forEach(input => {
+                input.addEventListener('input', () => {
+                    const weight = parseFloat(measureInputs.peso.value);
+                    const height = parseFloat(measureInputs.altura.value);
+                    imcResult.textContent = calculateIMC(weight, height) || '--';
+                });
+            });
+
             // Dashboard Listeners
             [dashProtocolSelector, dashRoutineSelector, dashExerciseSelector, dashSetTypeSelector].forEach(sel => {
                 sel.addEventListener('change', updateDashboard);
@@ -1011,14 +1391,29 @@
             });
             
             exportHistoryBtn.addEventListener('click', () => exportElementToPDF(historyContainer.parentElement, 'historico_treino.pdf'));
+            exportHistoryExcelBtn.addEventListener('click', exportHistoryToExcel);
             exportDashboardBtn.addEventListener('click', () => exportElementToPDF(dashboardContent, 'dashboard_treino.pdf'));
             exportCardioHistoryBtn.addEventListener('click', () => exportElementToPDF(cardioHistoryContent, 'historico_cardio.pdf'));
+            exportCardioHistoryExcelBtn.addEventListener('click', exportCardioHistoryToExcel);
+            exportMeasuresPdfBtn.addEventListener('click', () => exportElementToPDF(measuresComparisonContent, 'comparativo_medidas.pdf'));
+            exportMeasuresExcelBtn.addEventListener('click', () => {
+                const measureLabels = {
+                    altura: 'Altura (m)', peso: 'Peso (kg)', imc: 'IMC', peitoral: 'Peitoral (cm)', cintura: 'Cintura (cm)', gluteo: 'Glúteo (cm)',
+                    bracoD: 'Braço Direito (cm)', bracoE: 'Braço Esquerdo (cm)', coxaD: 'Coxa Direita (cm)', coxaE: 'Coxa Esquerda (cm)'
+                };
+                exportTableToExcel(bodyMeasuresHistory, measureLabels, 'comparativo_medidas.csv');
+            });
+            
+            // Dados Listeners
+            exportDataBtn.addEventListener('click', handleExportData);
+            importDataInput.addEventListener('change', handleImportData);
         };
 
         // --- INICIALIZAÇÃO ---
         const init = () => {
             workoutDateInput.valueAsDate = new Date();
             cardioDateInput.valueAsDate = new Date();
+            measureDateInput.valueAsDate = new Date();
             populateProtocolSelectors();
             populateAllExerciseSelectors();
             renderProtocolList();
@@ -1026,9 +1421,10 @@
             renderRoutinesForProtocol(protocolFilterSelector.value);
             renderHistory();
             renderCardioHistory();
+            renderMeasuresComparison();
             setupEventListeners();
             updateDashboard();
-            switchPage('protocols');
+            switchPage('body-measures');
         };
 
         const populateRoutinesForSelector = (protocolId, selector) => {
@@ -1040,6 +1436,58 @@
                 }
                 selector.disabled = false;
             }
+        };
+        
+        const handleExportData = () => {
+            const allData = {
+                protocols,
+                exerciseDatabase,
+                workoutHistory,
+                cardioHistory,
+                bodyMeasuresHistory
+            };
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.download = 'diario_de_treino_backup.json';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        };
+
+        const handleImportData = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    // Validação simples para verificar se o arquivo parece correto
+                    if (importedData.protocols && importedData.exerciseDatabase && importedData.workoutHistory) {
+                        if (confirm("Tem certeza que deseja importar os dados? Todos os dados atuais serão substituídos.")) {
+                            localStorage.setItem('workoutProtocols_v13', JSON.stringify(importedData.protocols));
+                            localStorage.setItem('workoutExercises_v13', JSON.stringify(importedData.exerciseDatabase));
+                            localStorage.setItem('workoutHistory_v13', JSON.stringify(importedData.workoutHistory));
+                            localStorage.setItem('workoutCardioHistory_v13', JSON.stringify(importedData.cardioHistory || []));
+                            localStorage.setItem('bodyMeasuresHistory_v13', JSON.stringify(importedData.bodyMeasuresHistory || []));
+                            
+                            alert("Dados importados com sucesso! O aplicativo será recarregado.");
+                            location.reload();
+                        }
+                    } else {
+                        alert("Arquivo de backup inválido.");
+                    }
+                } catch (error) {
+                    alert("Erro ao ler o arquivo de backup. Verifique se o arquivo está no formato correto.");
+                    console.error("Erro na importação:", error);
+                } finally {
+                    // Limpa o valor do input para permitir a seleção do mesmo arquivo novamente
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
         };
 
         init();
